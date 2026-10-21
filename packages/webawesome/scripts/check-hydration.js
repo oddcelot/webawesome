@@ -25,6 +25,12 @@ const root = dirname(__dirname);
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
 const HYDRATION_WAIT_MS = Number(process.env.HYDRATION_WAIT_MS || 300);
 const SERVER_TIMEOUT_MS = Number(process.env.SERVER_TIMEOUT_MS || 180_000);
+// Upper bound for checking one page (all reload attempts). A page that never settles is reported as a failure
+// instead of stalling its worker forever.
+const PAGE_TIMEOUT_MS = Number(process.env.PAGE_TIMEOUT_MS || 60_000);
+// Upper bound for waiting on custom elements to be defined. A tag that is never defined (e.g. a Pro-only component
+// shown on a docs page) would otherwise keep `whenDefined()` pending forever.
+const DEFINE_TIMEOUT_MS = Number(process.env.DEFINE_TIMEOUT_MS || 10_000);
 
 // How many docs pages to check simultaneously. Each one is an independent
 // Playwright page in the same browser context. Tune down if the dev server
@@ -71,14 +77,33 @@ async function getComponentUrls(options = {}) {
 
 /** Wait until all custom elements on the page are defined and updated. */
 async function waitForComponentsLoaded(page) {
-  await page.evaluate(async () => {
+  // The docs page can reload itself right after the first load (the SSR switch syncs its cookie), which destroys
+  // the evaluation context. Wait for the new document and measure that one instead.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await settleComponents(page);
+      break;
+    } catch (error) {
+      if (attempt >= 3 || !/Execution context was destroyed|navigation/i.test(error.message)) throw error;
+      await page.waitForLoadState('load');
+    }
+  }
+  // Final settle for any trailing async rejection to reach the listeners.
+  await page.waitForTimeout(HYDRATION_WAIT_MS);
+}
+
+async function settleComponents(page) {
+  await page.evaluate(async defineTimeoutMs => {
     const isCustom = el => el.localName.includes('-');
     const allTags = () => new Set([...document.querySelectorAll('*')].filter(isCustom).map(el => el.localName));
 
     // 1. Wait for *every* custom-element tag in the document to be defined —
     //    not just the ones that happened to be :not(:defined) at one instant.
     //    whenDefined resolves immediately for already-defined tags.
-    await Promise.allSettled([...allTags()].map(t => window.customElements.whenDefined(t)));
+    await Promise.race([
+      Promise.allSettled([...allTags()].map(t => window.customElements.whenDefined(t))),
+      new Promise(r => setTimeout(r, defineTimeoutMs)),
+    ]);
 
     // 2. Drain updateComplete for ALL custom elements, repeatedly, until the
     //    tree stops producing pending updates. The hydrating update() (where
@@ -93,9 +118,7 @@ async function waitForComponentsLoaded(page) {
       await new Promise(r => requestAnimationFrame(() => r()));
       if (!els.some(el => el.isUpdatePending)) break;
     }
-  });
-  // Final settle for any trailing async rejection to reach the listeners.
-  await page.waitForTimeout(HYDRATION_WAIT_MS);
+  }, DEFINE_TIMEOUT_MS);
 }
 
 /**
@@ -103,6 +126,19 @@ async function waitForComponentsLoaded(page) {
  * Each page has its own window.__hydrationErrors (addInitScript runs per page),
  * so this is safe to run concurrently.
  */
+/** Resolves to `promise`'s result, or to a failure for `url` if it takes longer than `ms`. */
+function withTimeout(promise, ms, url) {
+  const label = url.replace(BASE_URL, '').replace('?ssr=true', '');
+  let timer;
+  const timeout = new Promise(resolve => {
+    timer = setTimeout(() => {
+      console.log(`❌ ${label} — timed out after ${ms}ms`);
+      resolve({ url: label, errors: [{ tagName: '(timeout)', message: `Page check exceeded ${ms}ms` }] });
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 async function checkUrl(context, url) {
   const label = url.replace(BASE_URL, '').replace('?ssr=true', '');
   const page = await context.newPage();
@@ -217,7 +253,7 @@ export async function check(options = {}) {
     while (true) {
       const i = next++;
       if (i >= urls.length) return;
-      const result = await checkUrl(context, urls[i]);
+      const result = await withTimeout(checkUrl(context, urls[i]), PAGE_TIMEOUT_MS, urls[i]);
       if (result) failures.push(result);
     }
   };
