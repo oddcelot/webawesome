@@ -21,6 +21,7 @@ export default defineConfig({
       ...ignorePatterns,
       '**/*.hbs',
       '**/*.md',
+      '**/*.mdx',
       '!packages/webawesome/docs/docs/patterns/**/*.md',
       '!packages/webawesome/scripts/agent-skill/**/*.md',
       '!packages/webawesome/scripts/design-skill/**/*.md',
