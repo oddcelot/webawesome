@@ -1,3 +1,11 @@
 ---
-// STUB: port pending
+import Layout from '../../layouts/Layout.astro';
+import { getStaticPage } from '../../lib/pages.js';
+
+const page = getStaticPage('docs/layout');
 ---
+
+<Layout page={page}>
+  <!-- Redirect to new location -->
+  <meta http-equiv="refresh" content="0; url=/docs/utilities" />
+</Layout>

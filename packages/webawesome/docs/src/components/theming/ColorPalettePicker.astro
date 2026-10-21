@@ -1,3 +1,61 @@
 ---
-// STUB
+import * as themer from '../../../_data/themer.js';
+import { site } from '../../lib/site.js';
+import ProBadge from '../macros/ProBadge.astro';
+import ColorPaletteViewer from './ColorPaletteViewer.astro';
 ---
+
+{themer.palettes.filter(palette => !palette.isPro).map(palette => <link rel="stylesheet" href={`/dist/styles/color/palettes/${palette.filename}`} />)}
+
+<wa-tab-group id="palette-picker">
+  {
+    themer.palettes.map(palette =>
+      !palette.isPro ? (
+        <wa-tab panel={palette.name.toLowerCase()}>{palette.name}</wa-tab>
+      ) : (
+        <wa-tab panel={palette.name.toLowerCase()} disabled="">
+          <span class="wa-cluster wa-gap-xs wa-flex-nowrap">
+            {palette.name}
+            <ProBadge description={`This palette requires access to ${site.namePro}`} />
+          </span>
+        </wa-tab>
+      ),
+    )
+  }
+  {themer.palettes.map(palette => <wa-tab-panel name={palette.name.toLowerCase()} />)}
+</wa-tab-group>
+
+<div id="color-palettes" class="wa-palette-default">
+  <ColorPaletteViewer />
+</div>
+
+<script is:inline type="module">
+  const paletteContainer = document.getElementById('color-palettes');
+  const tabGroup = document.getElementById('palette-picker');
+
+  tabGroup.addEventListener('wa-tab-show', event => {
+    const selectedValue = event.detail.name;
+    const existing = [...paletteContainer.classList].filter(c => c.startsWith('wa-palette-'));
+    existing.forEach(c => paletteContainer.classList.remove(c));
+    paletteContainer.classList.add(`wa-palette-${selectedValue}`);
+
+    document.querySelectorAll('.palette-instructions').forEach(instruction => {
+      instruction.hidden = instruction.dataset.palette !== selectedValue;
+    });
+  });
+</script>
+
+<style is:inline>
+  /* Empty panels are just contract markers — strip their default padding. */
+  #palette-picker wa-tab-panel {
+    --padding: 0;
+  }
+
+  #color-palettes {
+    margin-block-start: var(--wa-space-l);
+
+    &:has(+ *) {
+      margin-block-end: var(--wa-content-spacing);
+    }
+  }
+</style>

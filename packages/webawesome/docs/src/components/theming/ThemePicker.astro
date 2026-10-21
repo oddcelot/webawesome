@@ -1,3 +1,126 @@
 ---
-// STUB
+import * as themer from '../../../_data/themer.js';
+import { site } from '../../lib/site.js';
+import ProBadge from '../macros/ProBadge.astro';
+import ThemeViewer from './ThemeViewer.astro';
+
+const stripExtension = (s: string) => s.replace(/\.[^.]*$/, '');
 ---
+
+<wa-tab-group id="theme-picker">
+  {
+    themer.themes.map(theme =>
+      !theme.isPro ? (
+        <wa-tab
+          panel={stripExtension(theme.filename)}
+          data-title={theme.name}
+          data-description={theme.description}
+          data-palette={stripExtension(theme.palette.filename)}
+          data-brand={theme.colorBrand.color}
+        >
+          {theme.name}
+        </wa-tab>
+      ) : (
+        <wa-tab
+          panel={stripExtension(theme.filename)}
+          data-title={theme.name}
+          data-description={theme.description}
+          data-palette={stripExtension(theme.palette.filename)}
+          data-brand={theme.colorBrand.color}
+          disabled=""
+        >
+          <span class="wa-cluster wa-gap-xs wa-flex-nowrap">
+            {theme.name}
+            <ProBadge description={`This theme requires access to ${site.namePro}`} />
+          </span>
+        </wa-tab>
+      ),
+    )
+  }
+  {themer.themes.filter(theme => !theme.isPro).map(theme => <wa-tab-panel name={stripExtension(theme.filename)} />)}
+</wa-tab-group>
+
+<div id="theme-preview" class="wa-stack">
+  <header class="wa-stack">
+    <h2 data-theme-name>Theme</h2>
+    <p data-theme-description>Description</p>
+  </header>
+
+  <ThemeViewer />
+</div>
+
+<script is:inline type="module">
+  import { doViewTransition } from '/assets/scripts/view-transitions.js';
+
+  const themePicker = document.getElementById('theme-picker');
+  const afterFrame = document.querySelector('wa-zoomable-frame[slot="after"]');
+  const beforeFrame = document.querySelector('wa-zoomable-frame[slot="before"]');
+  const nameElement = document.querySelector('[data-theme-name]');
+  const descriptionElement = document.querySelector('[data-theme-description]');
+
+  function updateFrames(selectedValue, title, description, palette, brand) {
+    [afterFrame, beforeFrame].forEach(frame => {
+      if (!frame.contentDocument) return;
+      const html = frame.contentDocument.documentElement;
+      if (!html) return;
+      [...html.classList].forEach(className => {
+        if (className.startsWith('wa-theme-') || className.startsWith('wa-palette-') || className.startsWith('wa-brand-')) {
+          html.classList.remove(className);
+        }
+      });
+      if (selectedValue !== 'default') {
+        html.classList.add(`wa-theme-${selectedValue}`);
+        html.classList.add(`wa-palette-${palette}`);
+        html.classList.add(`wa-brand-${brand}`);
+      }
+    });
+
+    if (nameElement && title) nameElement.textContent = title;
+    if (descriptionElement && description) descriptionElement.textContent = description;
+
+    document.querySelectorAll('.theme-instructions').forEach(instruction => {
+      instruction.hidden = instruction.dataset.theme !== selectedValue;
+    });
+  }
+
+  function applyTab(tab) {
+    if (!tab) return;
+    updateFrames(
+      tab.getAttribute('panel'),
+      tab.dataset.title,
+      tab.dataset.description,
+      tab.dataset.palette,
+      tab.dataset.brand
+    );
+  }
+
+  applyTab(themePicker.querySelector('wa-tab[panel="default"]'));
+
+  themePicker.addEventListener('wa-tab-show', event => {
+    const tab = themePicker.querySelector(`wa-tab[panel="${event.detail.name}"]`);
+    doViewTransition(() => applyTab(tab));
+  });
+</script>
+
+<style is:inline>
+  [hidden] {
+    display: none !important;
+  }
+
+  .title {
+    display: none;
+  }
+
+  /* Empty panels are just contract markers — strip their default padding. */
+  #theme-picker wa-tab-panel {
+    --padding: 0;
+  }
+
+  #theme-preview {
+    margin-block-start: var(--wa-space-l);
+  }
+
+  #theme-preview header p {
+    font-size: var(--wa-font-size-s);
+  }
+</style>

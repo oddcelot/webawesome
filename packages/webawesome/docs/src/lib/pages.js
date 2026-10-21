@@ -2,7 +2,7 @@ import { statSync } from 'node:fs';
 import { join } from 'node:path';
 import { getCollection } from 'astro:content';
 import { getComponents } from '../../_utils/manifest.js';
-import { computePageData, docsRoot, isDev } from './site.js';
+import { computePageData, docsRoot, faqTopics, isDev } from './site.js';
 import { STATIC_PAGES as STATIC_PAGE_DEFINITIONS } from './static-pages.js';
 
 /**
@@ -172,4 +172,46 @@ export async function getSearchablePages() {
         category: page.data.category || '',
       };
     });
+}
+
+/**
+ * FAQ entries (`_faqs/<topic>/<slug>.mdx`) sorted by `order`, then slug. Each has `slug`, `topic`, `data` and the
+ * `entry` to pass to `render()`. Fails the build on duplicate slugs or slugs that collide with /support's own
+ * section ids, since either would silently break deep links.
+ */
+export async function getFaqs() {
+  const entries = await getCollection('faqs');
+  if (entries.length === 0) {
+    throw new Error('The "faqs" collection is empty. Every page that consumes it would render as blank chrome.');
+  }
+
+  const reservedIds = [...faqTopics.map(topic => topic.slug), 'get-help', 'github', 'discord', 'email'];
+  const seen = new Map(reservedIds.map(id => [id, 'reserved page id on /support']));
+  const faqs = entries.map(entry => {
+    const parts = entry.id.split('/');
+    return { entry, slug: parts.at(-1), topic: parts.at(-2), data: entry.data };
+  });
+
+  for (const faq of faqs) {
+    if (seen.has(faq.slug)) {
+      throw new Error(`Duplicate FAQ slug "${faq.slug}": ${seen.get(faq.slug)} and ${faq.entry.filePath}`);
+    }
+    seen.set(faq.slug, faq.entry.filePath);
+  }
+
+  return faqs.sort((a, b) => (a.data.order ?? 999) - (b.data.order ?? 999) || a.slug.localeCompare(b.slug));
+}
+
+/** FAQ entries for the given slugs, in that order. Unknown slugs fail the build unless `strict` is false. */
+export async function getFaqsBySlugs(slugs, strict = true) {
+  const faqs = await getFaqs();
+  return slugs
+    .map(slug => {
+      const faq = faqs.find(faq => faq.slug === slug);
+      if (!faq && strict) {
+        throw new Error(`No FAQ entry with slug "${slug}" — check docs/_faqs/*/${slug}.mdx exists.`);
+      }
+      return faq;
+    })
+    .filter(Boolean);
 }

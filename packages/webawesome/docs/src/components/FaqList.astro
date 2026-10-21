@@ -1,3 +1,37 @@
 ---
-// STUB: port of _includes/ pending
+import { render } from 'astro:content';
+
+interface Props {
+  entries: any[];
+  variant?: 'prose' | 'accordion';
+  accordionMode?: string;
+  /** Maps a slug to a label that replaces the entry's question on this surface only. */
+  labels?: Record<string, string>;
+}
+
+const { entries, variant = 'prose', accordionMode = 'single-collapsible', labels = {} } = Astro.props;
+const rendered = await Promise.all(
+  entries.map(async faq => ({ faq, Content: (await render(faq.entry)).Content })),
+);
 ---
+
+{
+  variant === 'prose' ? (
+    rendered.map(({ faq, Content }) => (
+      <article class="faq-entry" data-no-outline="" data-synonyms={(faq.data.synonyms || []).join(' ')}>
+        <h3 class="wa-heading-l" id={faq.slug}>
+          {faq.data.question}
+        </h3>
+        <Content />
+      </article>
+    ))
+  ) : (
+    <wa-accordion appearance="plain" class="wa-body-s" mode={accordionMode}>
+      {rendered.map(({ faq, Content }) => (
+        <wa-accordion-item label={labels[faq.slug] || faq.data.question}>
+          <Content />
+        </wa-accordion-item>
+      ))}
+    </wa-accordion>
+  )
+}

@@ -1,3 +1,130 @@
 ---
-// STUB: port pending
+import Layout from '../../../layouts/Layout.astro';
+import { renderInlineMarkdown, renderMarkdown } from '../../../lib/markdown.js';
+import { getStaticPage, getTaggedPages } from '../../../lib/pages.js';
+import { cdnUrl } from '../../../lib/site.js';
+const page = getStaticPage('docs/utilities/index');
+const stripTags = html => html.replace(/<[^>]*>/g, '');
+const byTitle = (a, b) => String(a.data.title).toLowerCase().localeCompare(String(b.data.title).toLowerCase());
+const styleUtilities = (await getTaggedPages('styleUtilities')).sort(byTitle);
+const layoutUtilities = (await getTaggedPages('layoutUtilities')).sort(byTitle);
 ---
+
+<Layout page={page}>
+<p>
+  <Fragment set:html={renderMarkdown(`
+  Preset CSS utility classes that let you efficiently customize styles and layouts for components and native elements alike.
+  `)} />
+</p>
+
+<Fragment set:html={renderMarkdown(`
+Instead of hand-writing the same CSS over and over, reach for a utility class and your theme takes care of the rest. CSS
+utilities pull directly from your Web Awesome [theme](/docs/themes) and [design tokens](/docs/tokens), so colors,
+typography, rounding, and spacing stay consistent with every component on the page. They're framework-agnostic, work on
+any native HTML element, and can be combined freely.
+
+## Using CSS Utilities
+
+CSS utilities ship as part of \`webawesome.css\`, so if you're already including that stylesheet you don't need to import
+anything else. Otherwise, follow these instructions to include the utilities stylesheet on its own.
+`)} />
+
+<wa-tab-group data-install-tabs="">
+  <wa-tab panel="cdn"><wa-icon name="globe" variant="regular"></wa-icon> CDN</wa-tab>
+  <wa-tab panel="npm"><wa-icon name="box-open" variant="regular"></wa-icon> npm</wa-tab>
+  <wa-tab panel="self-hosted"><wa-icon name="arrow-down-to-line" variant="regular"></wa-icon> Self-Hosted</wa-tab>
+  <wa-tab panel="hosted"><wa-icon name="rocket-launch" variant="regular"></wa-icon> Hosted Projects</wa-tab>
+
+  <wa-tab-panel name="cdn">
+<Fragment set:html={renderMarkdown(`
+Add the following stylesheet to the \`<head>\` section of your pages:
+
+\`\`\`html
+<link rel="stylesheet" href="${cdnUrl('styles/utilities.css')}">
+\`\`\`
+`)} />
+  </wa-tab-panel>
+
+  <wa-tab-panel name="npm">
+<Fragment set:html={renderMarkdown(`
+After installing \`@awesome.me/webawesome\`, import the following stylesheet into your app:
+
+\`\`\`js
+import '@awesome.me/webawesome/dist/styles/utilities.css';
+\`\`\`
+`)} />
+  </wa-tab-panel>
+
+  <wa-tab-panel name="self-hosted">
+<Fragment set:html={renderMarkdown(`
+Add the following stylesheet to the \`<head>\` section of your pages:
+
+\`\`\`html
+<link rel="stylesheet" href="/dist/styles/utilities.css">
+\`\`\`
+`)} />
+  </wa-tab-panel>
+
+  <wa-tab-panel name="hosted">
+<Fragment set:html={renderMarkdown(`
+If you're using a [hosted project](/workspaces), CSS utilities can be toggled on from your project settings.
+
+1. Head over to your project's <wa-tag class="tag-ui" appearance="outlined"><wa-icon name="gear" variant="regular"></wa-icon> Settings</wa-tag>.
+2. Next to <wa-tag class="tag-ui" appearance="outlined">Features</wa-tag>, select the <wa-tag class="tag-ui" appearance="outlined">CSS utilities</wa-tag> checkbox.
+3. <wa-tag class="tag-ui" appearance="outlined">Save Changes</wa-tag> to immediately update anywhere you're using your project.
+`)} />
+  </wa-tab-panel>
+</wa-tab-group>
+
+<wa-divider></wa-divider>
+
+<h2 class="modern-card-list-heading">Style Utilities</h2>
+<Fragment set:html={renderMarkdown(`
+Preset rules for customizing colors, typography, rounding, and more &mdash; framework-agnostic and composable on any
+element.
+`)} />
+
+<div class="modern-card-list">
+  <section class="search-list-grid">
+    {styleUtilities.map(item => (
+          <a class="hover-grow hover-emphasize-border" href={item.url}>
+            <wa-card>
+              <span class="page-name">{item.data.title}</span>
+              {item.data.description && (
+                <p class="modern-card-summary" set:html={stripTags(renderInlineMarkdown(item.data.description))} />
+              )}
+            </wa-card>
+          </a>
+        ))}
+  </section>
+</div>
+
+<h2 class="modern-card-list-heading">Layout Utilities</h2>
+<Fragment set:html={renderMarkdown(`
+Named layouts like [\`wa-stack\`](/docs/utilities/stack), [\`wa-cluster\`](/docs/utilities/cluster),
+[\`wa-split\`](/docs/utilities/split), [\`wa-flank\`](/docs/utilities/flank), [\`wa-frame\`](/docs/utilities/frame), and
+[\`wa-grid\`](/docs/utilities/grid) &mdash; plus property-level helpers for gap, alignment, and wrap &mdash; that organize
+content responsively without custom CSS.
+`)} />
+
+<div class="modern-card-list">
+  <section class="search-list-grid">
+    {layoutUtilities.map(item => (
+          <a class="hover-grow hover-emphasize-border" href={item.url}>
+            <wa-card>
+              <span class="page-name">{item.data.title}</span>
+              {item.data.description && (
+                <p class="modern-card-summary" set:html={stripTags(renderInlineMarkdown(item.data.description))} />
+              )}
+            </wa-card>
+          </a>
+        ))}
+  </section>
+</div>
+
+<style is:inline>
+  wa-tab-group+wa-divider {
+    margin-block: 1rem 3rem;
+  }
+</style>
+</Layout>

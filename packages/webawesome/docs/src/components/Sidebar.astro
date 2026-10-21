@@ -1,3 +1,182 @@
 ---
-// STUB: port of _includes/ pending
+import { getComponentPages } from '../lib/pages.js';
+import { componentCategories, site } from '../lib/site.js';
+import ColorSchemeSelector from './ColorSchemeSelector.astro';
+import ProBadge from './macros/ProBadge.astro';
+import SearchTriggerButton from './SearchTriggerButton.astro';
+import SsrSwitch from './SsrSwitch.astro';
+import ThemeSelector from './ThemeSelector.astro';
+
+const hasThemeSelector = Astro.props.hasThemeSelector ?? true;
+
+// Nunjucks `sort(false, false, 'data.title')`: case-insensitive by title.
+const lower = (value: unknown) => (typeof value === 'string' ? value.toLowerCase() : value);
+const sortedComponentPages = [...(await getComponentPages())].sort((a, b) => {
+  const left = lower(a.data.title) as any;
+  const right = lower(b.data.title) as any;
+  return left < right ? -1 : left > right ? 1 : 0;
+});
+
+const categories = componentCategories.map(cat => {
+  const categoryPages = sortedComponentPages.filter(
+    page => page.data.category === cat.label && !page.data.parent && !page.data.sidebarHidden,
+  );
+  const categoryIsAllPro = categoryPages.length > 0 && categoryPages.every(page => page.data.isProComponent);
+  const entries = categoryPages.map(page => ({
+    page,
+    children: sortedComponentPages.filter(child => child.data.parent === page.fileSlug && !child.data.sidebarHidden),
+  }));
+  return { cat, entries, categoryIsAllPro };
+});
 ---
+
+<div class="wa-stack wa-gap-xs wa-mobile-only">
+  <SearchTriggerButton />
+  <div class="wa-split">
+    <SsrSwitch />
+    <div class="wa-cluster wa-gap-3xs wa-flex-nowrap">
+      <ColorSchemeSelector />
+      {hasThemeSelector && <ThemeSelector />}
+    </div>
+  </div>
+</div>
+
+<div class="wa-stack wa-gap-xl">
+  <section class="wa-stack">
+    <h2 class="wa-cluster wa-gap-xs">
+      <wa-icon name="wand-magic-sparkles" variant="regular" aria-hidden="true"></wa-icon>
+      Getting Started
+    </h2>
+    <ul>
+      <li><a href="/docs">Installation</a></li>
+      <li><a href="/docs/usage">Usage</a></li>
+      <li><a href="/docs/form-controls">Forms</a></li>
+      <li><a href="/docs/localization">Localization</a></li>
+      <li><a href="/docs/frameworks/">Frameworks</a></li>
+      <li><a href="/docs/ai">Using with AI</a></li>
+      <li>
+        <span class="wa-split">
+          <a href="/docs/resources/figma">Figma Design Kit</a>
+          <ProBadge />
+        </span>
+      </li>
+      <li>
+        <a class="wa-cluster wa-gap-xs" href="/docs/ssr">
+          Server Rendering
+          <wa-icon name="flask" aria-hidden="true" class="icon-shrink de-emphasize"></wa-icon>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="wa-stack">
+    <h2 class="wa-cluster wa-gap-xs">
+      <wa-icon name="book-spine" variant="regular" aria-hidden="true"></wa-icon>
+      Resources
+    </h2>
+    <ul>
+      <li><a href="/docs/resources/accessibility">Accessibility</a></li>
+      <li><a href="/docs/resources/browser-support">Browser Support</a></li>
+      <li><a href="/docs/resources/contributing">Contributing</a></li>
+      <li>
+        <span class="wa-split">
+          <a href="/docs/patterns/">Patterns</a>
+          <ProBadge description={`Patterns require access to ${site.namePro}`} />
+        </span>
+      </li>
+      <li><a href="/docs/resources/migrating-from-shoelace">Migrating from Shoelace</a></li>
+      <li><a href="/docs/resources/visual-tests">Visual Tests</a></li>
+      <li><a href="/docs/resources/changelog">Changelog</a></li>
+      <li><a href={site.urls.support}>Help &amp; Support</a></li>
+    </ul>
+  </section>
+
+  <section class="wa-stack">
+    <h2 class="wa-cluster wa-gap-xs">
+      <wa-icon name="palette" variant="regular" aria-hidden="true"></wa-icon>
+      Theming &amp; Utilities
+    </h2>
+    <ul>
+      <li><a href="/docs/theming-overview">Overview</a></li>
+      <li><a href="/docs/themes">Built-in Themes</a></li>
+      <li><a href="/docs/color-palettes">Color Palettes</a></li>
+      <li><a href="/docs/tokens/">Design Tokens</a></li>
+      <li><a href="/docs/customizing">Customizing &amp; Theming</a></li>
+      <li><a href="/docs/utilities/">CSS Utilities</a></li>
+    </ul>
+  </section>
+
+  {/* Components are auto-organized by category (see _data/componentCategories.json). */}
+  {
+    categories.map(({ cat, entries, categoryIsAllPro }) => (
+      <section class="wa-stack">
+        <h2 class="wa-split">
+          <span class="wa-cluster wa-gap-xs">
+            <wa-icon name={cat.icon} variant="regular" aria-hidden="true" />
+            {cat.label}
+          </span>
+          {categoryIsAllPro && <ProBadge />}
+        </h2>
+        <ul>
+          {entries.map(({ page, children }) => (
+            <li>
+              {
+                [page].map(item => {
+                  const isExperimental = item.data.component?.status === 'experimental';
+                  const hasProBadge = item.data.isProComponent && !categoryIsAllPro;
+                  const link = (
+                    <a class={isExperimental ? 'wa-cluster wa-gap-xs' : undefined} href={item.url}>
+                      {item.data.title}
+                      {isExperimental && ' '}
+                      {isExperimental && <wa-icon name="flask" aria-hidden="true" class="icon-shrink de-emphasize" />}
+                    </a>
+                  );
+                  return hasProBadge ? (
+                    <span class="wa-split">
+                      {link} <ProBadge />
+                    </span>
+                  ) : (
+                    link
+                  );
+                })
+              }
+              {children.length > 0 && (
+                <ul>
+                  {children.map(child => (
+                    <li>
+                      {
+                [child].map(item => {
+                  const isExperimental = item.data.component?.status === 'experimental';
+                  const hasProBadge = item.data.isProComponent && !categoryIsAllPro;
+                  const link = (
+                    <a class={isExperimental ? 'wa-cluster wa-gap-xs' : undefined} href={item.url}>
+                      {item.data.title}
+                      {isExperimental && ' '}
+                      {isExperimental && <wa-icon name="flask" aria-hidden="true" class="icon-shrink de-emphasize" />}
+                    </a>
+                  );
+                  return hasProBadge ? (
+                    <span class="wa-split">
+                      {link} <ProBadge />
+                    </span>
+                  ) : (
+                    link
+                  );
+                })
+              }
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+          {cat.slug === 'data-viz' && (
+            <li>
+              <a href="/docs/components/chart">Advanced Usage</a>
+            </li>
+          )}
+        </ul>
+      </section>
+    ))
+  }
+</div>

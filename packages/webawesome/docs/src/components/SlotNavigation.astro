@@ -1,3 +1,7 @@
 ---
-// STUB: port of _includes/ pending
+import Sidebar from './Sidebar.astro';
+const { page } = Astro.props;
 ---
+<nav slot="navigation" id="sidebar" class="docs-aside" aria-label="Docs navigation" data-remember-scroll="" style="scrollbar-gutter: stable;">
+  <Sidebar hasThemeSelector={page?.data?.hasThemeSelector} />
+</nav>

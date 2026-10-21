@@ -1,3 +1,14 @@
 ---
-// STUB: port of _includes/ pending
+import { nanoid } from 'nanoid';
+
+interface Props {
+  description?: string;
+  id?: string;
+}
+
+const { description = 'This feature is available in the free version of Web Awesome', id = `free-badge-${nanoid(8)}` } =
+  Astro.props;
 ---
+
+<wa-badge appearance="filled" variant="neutral" pill="" class="free" id={id} data-free-badge="">Free</wa-badge>
+<wa-tooltip for={id}>{description}</wa-tooltip>

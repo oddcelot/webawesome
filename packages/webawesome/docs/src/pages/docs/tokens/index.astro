@@ -1,3 +1,95 @@
 ---
-// STUB: port pending
+import Layout from '../../../layouts/Layout.astro';
+import { renderInlineMarkdown, renderMarkdown } from '../../../lib/markdown.js';
+import { getStaticPage, getTaggedPages } from '../../../lib/pages.js';
+
+const page = getStaticPage('docs/tokens/index');
+const stripTags = html => html.replace(/<[^>]*>/g, '');
+const byTitle = (a, b) => String(a.data.title).toLowerCase().localeCompare(String(b.data.title).toLowerCase());
+const tokens = (await getTaggedPages('tokens')).sort(byTitle);
 ---
+
+<Layout page={page}>
+<Fragment set:html={renderMarkdown(`
+Design tokens are the building blocks of your [theme](/docs/themes) and thread through every Web Awesome component, giving your project a cohesive look and feel. They control everything from typography and color to spacing and borders.
+`)} />
+
+<div class="modern-card-list">
+  <section class="search-list-grid">
+    {tokens.map(item => (
+          <a class="hover-grow hover-emphasize-border" href={item.url}>
+            <wa-card>
+              <span class="page-name">{item.data.title}</span>
+              {item.data.description && (
+                <p class="modern-card-summary" set:html={stripTags(renderInlineMarkdown(item.data.description))} />
+              )}
+            </wa-card>
+          </a>
+        ))}
+  </section>
+  <div class="search-list-empty" hidden>
+    No results found
+  </div>
+</div>
+
+<wa-divider style="--spacing: var(--wa-space-3xl);"></wa-divider>
+
+<Fragment set:html={renderMarkdown(`
+## Using Design Tokens
+
+Design tokens are CSS custom properties prefixed with \`--wa-\`. Use them in your own stylesheets by wrapping the token name in the CSS \`var()\` function and assigning it to a property:
+
+\`\`\`css
+.branded-container {
+  background-color: var(--wa-color-brand-fill-normal);
+  border: var(--wa-border-width-s) var(--wa-border-style) var(--wa-color-brand-border-normal);
+  color: var(--wa-color-brand-on-normal);
+}
+\`\`\`
+
+You can also use design tokens with inline styles:
+
+\`\`\`html
+<span style="
+  background-color: var(--wa-color-brand-fill-normal);
+  color: var(--wa-color-brand-on-normal);
+"></span>
+\`\`\`
+
+## Customizing Design Tokens
+
+Overriding a design token updates every component and style that references it, making it a breeze to style and restyle your project. To customize a token, set its value in your styles. Setting tokens on \`:root\` applies them globally across your entire project:
+
+\`\`\`css
+:root {
+  --wa-font-family-body: 'Inter', sans-serif;
+  --wa-border-width-scale: 1.5; /* scales all border widths proportionally */
+}
+\`\`\`
+
+To customize a token that adapts to light and dark mode, scope the token to \`.wa-light\`, \`.wa-dark\`, and, optionally, \`.wa-invert\`:
+
+\`\`\`css
+:root,
+.wa-light,
+.wa-dark .wa-invert {
+  --wa-color-surface-default: var(--wa-color-neutral-95);
+}
+
+.wa-dark,
+.wa-invert {
+  --wa-color-surface-default: var(--wa-color-neutral-05);
+}
+\`\`\`
+
+You can also scope tokens to a subtree rather than \`:root\`, which allows you to theme a single section or element differently from the rest:
+
+\`\`\`css
+*:state(user-invalid),
+*:user-invalid {
+  --wa-color-focus: var(--wa-color-danger-60);
+  --wa-form-control-border-color: var(--wa-color-danger-border-normal);
+  --wa-form-control-label-color: var(--wa-color-danger-on-quiet);
+}
+\`\`\`
+`)} /></Layout>

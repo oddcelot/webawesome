@@ -1,3 +1,269 @@
 ---
-// STUB: port pending
+import Layout from '../../layouts/Layout.astro';
+import * as themer from '../../../_data/themer.js';
+import ColorPalettePicker from '../../components/theming/ColorPalettePicker.astro';
+import { renderMarkdown } from '../../lib/markdown.js';
+import { cdnUrl, site } from '../../lib/site.js';
+import { getStaticPage } from '../../lib/pages.js';
+
+const page = getStaticPage('docs/color-palettes');
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+
+const tag = (content: string) => `<wa-tag class="tag-ui" appearance="outlined">${content}</wa-tag>`;
+const icon = (name: string) => `<wa-icon name="${name}" variant="regular"></wa-icon>`;
+
+const paletteInstructions = themer.palettes.map(palette => {
+  const name = palette.name.toLowerCase();
+  return {
+    name,
+    isPro: palette.isPro,
+    cdn: palette.isPro
+      ? `<wa-callout variant="neutral" size="s">
+  <wa-icon slot="icon" name="info-circle" variant="regular"></wa-icon>
+  This palette can only be used with a Pro subscription.
+</wa-callout>
+`
+      : `To use this palette, add the palette's stylesheet from the CDN:
+
+\`\`\`html
+<link rel="stylesheet" href="${cdnUrl('styles/color/palettes/')}${palette.filename}">
+\`\`\`
+
+Then, apply the following class to the \`<html>\` element:
+
+\`\`\`html
+<html class="wa-palette-${name}">
+\`\`\`
+`,
+    npm: `After installing <code>@awesome.me/webawesome</code>, import the palette's stylesheet:
+
+\`\`\`js
+import '@awesome.me/webawesome/dist/styles/color/palettes/${palette.filename}';
+\`\`\`
+
+Then, apply the following class to the \`<html>\` element:
+
+\`\`\`html
+<html class="wa-palette-${name}">
+\`\`\`
+`,
+    selfHosted: `If you're self-hosting Web Awesome, include the palette's stylesheet from your server:
+
+\`\`\`html
+<link rel="stylesheet" href="/dist/styles/color/palettes/${palette.filename}">
+\`\`\`
+
+Then, apply the following class to the \`<html>\` element:
+
+\`\`\`html
+<html class="wa-palette-${name}">
+\`\`\`
+`,
+    tagSettings: `${tag(`${icon('gear')} Settings`)}`,
+    tagPaintbrush: `${tag(`${icon('paintbrush')} Edit Your Theme`)}`,
+    tagPalette: `${tag(`${icon('swatchbook')} ${capitalize(palette.name)}`)}`,
+    tagName: `${tag(capitalize(palette.name))}`,
+  };
+});
 ---
+
+<Layout page={page}>
+  <p>Color palettes give you a full spectrum of colors to use in your project.</p>
+
+  <p>
+    A color palette defines 10 hues — red, orange, yellow, green, cyan, blue, indigo, purple, pink, and gray — each with
+    a scale of 11 tints from <code>05</code> (darkest) to <code>95</code> (lightest) available as <a
+      href="/docs/tokens/color">color design tokens</a
+    >. While the tints have similar lightness values across palettes, each palette has unique hue shifts and chroma so
+    you can find just the right vibe to your project. Combine a palette with a <a href="/docs/themes">theme</a> and <a
+      href="/docs/tokens/color#variant-colors">variant colors</a
+    > to style the whole library.
+  </p>
+
+  <ColorPalettePicker />
+
+  <wa-callout class="pro wa-brand-orange">
+    <wa-icon slot="icon" name="crown" family="duotone" variant="regular" class="duotone-illustrated"></wa-icon>
+    <div class="wa-stack">
+      <div class="wa-stack wa-gap-2xs">
+        <strong>
+          <a href="/pro?from=pro-docs&context=color-palettes">Unlock every color palette with {site.namePro}!</a>
+        </strong>
+
+        <wa-details appearance="plain">
+          <span slot="summary"
+            >Subscribing to {site.namePro} unlocks every color palette, plus premium themes, the visual Theme Builder, and
+            <u class="appearance-underlined variant-drawn">more</u>.</span
+          >
+
+          <div class="wa-stack wa-gap-xl">
+            <wa-button href="/pro?from=pro-docs&context=color-palettes">
+              Get {site.namePro}
+              <wa-icon slot="end" name="arrow-right"></wa-icon>
+            </wa-button>
+          </div>
+        </wa-details>
+      </div>
+    </div>
+  </wa-callout>
+
+  <h2>Using This Palette</h2>
+
+  <div id="import-code">
+    {
+      paletteInstructions.map((palette, index) => (
+        <div class="palette-instructions" data-palette={palette.name} hidden={index !== 0}>
+          <wa-tab-group data-install-tabs="">
+            <wa-tab panel="cdn">
+              <wa-icon name="globe" variant="regular" /> CDN
+            </wa-tab>
+            <wa-tab panel="npm">
+              <wa-icon name="box-open" variant="regular" /> npm
+            </wa-tab>
+            <wa-tab panel="self-hosted">
+              <wa-icon name="arrow-down-to-line" variant="regular" /> Self-Hosted
+            </wa-tab>
+            <wa-tab panel="hosted">
+              <wa-icon name="rocket-launch" variant="regular" /> Hosted Projects
+            </wa-tab>
+
+            <wa-tab-panel name="cdn" set:html={renderMarkdown(palette.cdn)} />
+            <wa-tab-panel name="npm" set:html={renderMarkdown(palette.npm)} />
+            <wa-tab-panel name="self-hosted" set:html={renderMarkdown(palette.selfHosted)} />
+            <wa-tab-panel name="hosted">
+              <div class="hosted-project-instructions">
+                {palette.isPro ? (
+                  <div class="instruction-group wa-stack wa-gap-2xs">
+                    <h3 class="wa-heading-m" data-no-anchor="" data-no-outline="">
+                      Pro Workspace Projects
+                    </h3>
+                    <table class="wa-hover-rows">
+                      <thead>
+                        <tr>
+                          <th scope="col">Step</th>
+                          <th scope="col">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>1</td>
+                          <td>Go to your project's <Fragment set:html={palette.tagSettings} />.</td>
+                        </tr>
+                        <tr>
+                          <td>2</td>
+                          <td>Press <Fragment set:html={palette.tagPaintbrush} /> to open the Theme Builder.</td>
+                        </tr>
+                        <tr>
+                          <td>3</td>
+                          <td>
+                            Open <wa-tag class="tag-ui" appearance="outlined">Colors</wa-tag> and select <Fragment set:html={palette.tagName} />.
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>4</td>
+                          <td>Save your theme to immediately update anywhere you're using your project.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <>
+                    <div class="instruction-group wa-stack wa-gap-2xs">
+                      <h3 class="wa-heading-m" data-no-anchor="" data-no-outline="">
+                        Free Workspace Projects
+                      </h3>
+                      <table class="wa-hover-rows">
+                        <thead>
+                          <tr>
+                            <th scope="col">Step</th>
+                            <th scope="col">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>1</td>
+                            <td>Go to your project's <Fragment set:html={palette.tagSettings} />.</td>
+                          </tr>
+                          <tr>
+                            <td>2</td>
+                            <td>
+                              Find <wa-tag class="tag-ui" appearance="outlined">Color Palette</wa-tag>. Select <Fragment set:html={palette.tagPalette} />.
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>3</td>
+                            <td>Save your theme to immediately update anywhere you're using your project.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div class="instruction-group wa-stack wa-gap-2xs">
+                      <h3 class="wa-heading-m" data-no-anchor="" data-no-outline="">
+                        Pro Workspace Projects
+                      </h3>
+                      <table class="wa-hover-rows">
+                        <thead>
+                          <tr>
+                            <th scope="col">Step</th>
+                            <th scope="col">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>1</td>
+                            <td>Go to your project's <Fragment set:html={palette.tagSettings} />.</td>
+                          </tr>
+                          <tr>
+                            <td>2</td>
+                            <td>Press <Fragment set:html={palette.tagPaintbrush} /> to open the Theme Builder.</td>
+                          </tr>
+                          <tr>
+                            <td>3</td>
+                            <td>
+                              Open <wa-tag class="tag-ui" appearance="outlined">Colors</wa-tag> and select <Fragment set:html={palette.tagName} />.
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>4</td>
+                            <td>Save your theme to immediately update anywhere you're using your project.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </div>
+            </wa-tab-panel>
+          </wa-tab-group>
+        </div>
+      ))
+    }
+  </div>
+
+  <h2>Styling with Palette Colors</h2>
+
+  <p>
+    Once a palette is loaded, you can reach for any of its hue and tint tokens in your own CSS. Pair a hue's <a
+      href="/docs/tokens/color#core-colors">core color</a
+    > (<code>--wa-color-&#123;hue&#125;</code>) with its matching on color (<code>--wa-color-&#123;hue&#125;-on</code>) to
+    keep text and icons readable on top of it:
+  </p>
+
+  <Fragment
+    set:html={renderMarkdown(`\`\`\`css
+.callout-custom {
+  background: var(--wa-color-blue);
+  color: var(--wa-color-blue-on);
+}
+\`\`\`
+`)}
+  />
+
+  <Fragment
+    set:html={renderMarkdown(`:::info
+**Building with other tints?** The [Color tokens](/docs/tokens/color) reference lists every tint and semantic variant — pair them across the scale and you'll hit WCAG contrast ratios without doing the math.
+:::
+`)}
+  />
+</Layout>

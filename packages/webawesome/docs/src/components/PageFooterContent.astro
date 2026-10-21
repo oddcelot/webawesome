@@ -1,3 +1,103 @@
 ---
-// STUB: port of _includes/ pending
+import { packageData, site } from '../lib/site.js';
+
+const { page } = Astro.props;
+const data = page?.data ?? {};
+const isShowingFooterVersion = Astro.props.isShowingFooterVersion ?? data.isShowingFooterVersion ?? true;
+// base.njk sets `hasMadeWith` to false before including the footer, so the "made with" line never rendered in
+// Base-layout pages. Callers can still opt in explicitly.
+const hasMadeWith = Astro.props.hasMadeWith ?? false;
+const hasFocusedFooter = Astro.props.hasFocusedFooter ?? data.hasFocusedFooter;
+
+const footerSocials = [
+  { url: site.github.repo, name: 'github', label: 'GitHub', destination: 'github' },
+  { url: site.urls.discord, name: 'discord', label: 'Discord', destination: 'discord' },
+  { url: site.urls.bluesky, name: 'bluesky', label: 'Bluesky', destination: 'bluesky' },
+  { url: site.urls.mastodon, name: 'mastodon', label: 'Mastodon', destination: 'mastodon' },
+  { url: site.urls.x, name: 'x-twitter', label: 'Twitter (X)', destination: 'twitter' },
+  { url: site.urls.threads, name: 'threads', label: 'Threads', destination: 'threads' },
+];
+
+const footerLegalLinks = [
+  { url: site.legal.tos, label: 'Terms', destination: 'tos' },
+  { url: site.legal.privacy, label: 'Privacy', destination: 'privacy' },
+  { url: site.legal.refunds, label: 'Refunds', destination: 'refunds' },
+  { url: site.legal.licenseCore, label: 'Core License', destination: 'core_license' },
+  { url: site.legal.licensePro, label: 'Pro License', destination: 'pro_license' },
+];
+
+const madeWithElements = ['button', 'card', 'combobox', 'dialog', 'drawer', 'dropdown', 'page', 'popover', 'split-panel', 'sabi', 'ffles', 'tooltip', 'ter'];
+const randomElement = madeWithElements[Math.floor(Math.random() * madeWithElements.length)];
 ---
+<div class="wa-stack wa-gap-s page-footer-content">
+  {
+    !hasFocusedFooter && (
+      <div class="wa-split">
+        <div class="wa-cluster wa-gap-s wa-flex-nowrap">
+          <wa-icon name="web-awesome" family="brands" class="logo-web-awesome wa-font-size-m" label={site.tagline} />
+          <strong class="font-brand">Go Make Something Awesome</strong>
+        </div>
+
+        <nav aria-label="Web Awesome Elsewhere">
+          <ul class="appearance-plain wa-cluster wa-gap-0 page-footer-socials wa-caption-s">
+            {footerSocials.map(social => (
+              <li>
+                <a
+                  class="appearance-plain"
+                  href={social.url}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  data-track-event="footer:social_link_click"
+                  data-track-destination={social.destination}
+                >
+                  <wa-icon family="brands" name={social.name} label={social.label} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    )
+  }
+
+  <div class="wa-split">
+    <div class="wa-cluster wa-gap-3xs">
+      {
+        isShowingFooterVersion && !hasFocusedFooter && (
+          <>
+            <span>Version {packageData.version}</span>
+            <wa-icon name="dot" />
+          </>
+        )
+      }
+      {
+        hasMadeWith && !hasFocusedFooter && (
+          <>
+            <span class="page-footer-made-with">
+              Made with <wa-icon name="heart" animation="beat" class="heart-affection" /> and{' '}
+              <code class="appearance-plain">&lt;wa-{randomElement}&gt;</code>
+            </span>
+            <wa-icon name="dot" />
+          </>
+        )
+      }
+      <span>&copy; {site.company}</span>
+    </div>
+    <nav aria-label="Legal">
+      <ul class="appearance-plain wa-cluster wa-gap-s">
+        {
+          footerLegalLinks.map(link => (
+            <li>
+              <a class="appearance-plain" href={link.url} data-track-event="navigation:footer_link_click" data-track-destination={link.destination}>
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <button type="button" class="appearance-plain page-footer-cookie-button" data-dialog="open cookie-consent-dialog" data-track-event="navigation:footer_link_click" data-track-destination="cookie_preferences">Cookies</button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>

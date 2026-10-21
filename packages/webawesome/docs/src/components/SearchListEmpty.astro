@@ -1,3 +1,26 @@
 ---
-// STUB: port of _includes/ pending
+interface Props {
+  message: string;
+  /** HTML. Pass '' to drop the line. */
+  detail?: string;
+  /** HTML for the actions cluster; the default slot works too. */
+  actions?: string;
+  actionsClass?: string;
+}
+
+const {
+  message,
+  detail = 'Try a different search term.',
+  actions = '',
+  actionsClass = 'wa-cluster wa-gap-s wa-justify-content-center',
+} = Astro.props;
+const slotted = Astro.slots.has('default') ? (await Astro.slots.render('default')).trim() : '';
+const actionsHtml = actions || slotted;
 ---
+
+<div class="search-list-empty empty-state-panel wa-text-center wa-font-size-s" hidden>
+  <wa-icon name="face-monocle" family="duotone" variant="regular" class="duotone-illustrated wa-font-size-3xl"></wa-icon>
+  <p>{message}</p>
+  {detail && <p set:html={detail} />}
+  {actionsHtml && <div class={actionsClass} set:html={actionsHtml} />}
+</div>

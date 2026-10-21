@@ -1,3 +1,64 @@
 ---
-// STUB: port of _includes/ pending
+import path from 'node:path';
+import { themes } from '../../_data/themer.js';
+
+const stripExtension = (value: string) => path.parse(value + '').name;
+const freeThemes = themes.filter(theme => !theme.isPro);
+const proThemes = themes.filter(theme => theme.isPro);
 ---
+<wa-dropdown class="theme-selector" title="Select Theme">
+  <wa-button slot="trigger" id="theme-selector-trigger" appearance="plain" pill="">
+    <wa-icon name="palette" variant="regular" label="Select Theme"></wa-icon>
+  </wa-button>
+
+  {
+    freeThemes.map(theme => (
+      <wa-dropdown-item
+        value={stripExtension(theme.filename)}
+        data-brand={theme.colorBrand.color}
+        data-palette={stripExtension(theme.palette.filename)}
+      >
+        {theme.name}
+      </wa-dropdown-item>
+    ))
+  }
+
+  {themes.length > 0 && <wa-divider />}
+  {
+    proThemes.map(theme => (
+      <wa-dropdown-item
+        value={stripExtension(theme.filename)}
+        data-brand={theme.colorBrand.color}
+        data-palette={stripExtension(theme.palette.filename)}
+      >
+        {theme.name}
+      </wa-dropdown-item>
+    ))
+  }
+
+  <wa-divider></wa-divider>
+  <wa-dropdown-item value="/docs/theming-overview">
+    <wa-icon slot="icon" name="book-open" variant="regular"></wa-icon>
+    Docs
+  </wa-dropdown-item>
+</wa-dropdown>
+<wa-tooltip for="theme-selector-trigger" id="theme-tooltip">Select Theme</wa-tooltip>
+
+<script is:inline>
+  // Handle dropdown selection and trigger input event for theme.js
+  document.querySelectorAll('wa-dropdown.theme-selector').forEach(el => {
+    el.addEventListener('wa-select', (event) => {
+      const selectedValue = event.detail.item.value;
+
+      // Navigate if the value is a URL
+      if (selectedValue.startsWith('/')) {
+        window.location.href = selectedValue;
+        return;
+      }
+
+      // Trigger input event for theme.js
+      el.value = selectedValue;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
+</script>

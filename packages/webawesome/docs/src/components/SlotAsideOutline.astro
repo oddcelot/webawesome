@@ -1,3 +1,8 @@
 ---
-// STUB: port of _includes/ pending
+const { page } = Astro.props;
 ---
+<aside slot="aside" id="outline" class="docs-aside">
+  <nav id="outline-standard" class="outline-links" aria-label="On this page">
+    <h2><a href="#content">{page.data.title}</a></h2>
+  </nav>
+</aside>

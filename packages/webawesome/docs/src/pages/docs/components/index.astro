@@ -1,3 +1,58 @@
 ---
-// STUB: port pending
+import ComponentMetaBadges from '../../../components/macros/ComponentMetaBadges.astro';
+import ProBadge from '../../../components/macros/ProBadge.astro';
+import SearchListEmpty from '../../../components/SearchListEmpty.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { renderInlineMarkdown } from '../../../lib/markdown.js';
+import { getComponentPages, getStaticPage } from '../../../lib/pages.js';
+import { site } from '../../../lib/site.js';
+
+const page = getStaticPage('docs/components/index');
+const stripTags = html => html.replace(/<[^>]*>/g, '');
+const pages = (await getComponentPages()).sort((a, b) =>
+  String(a.data.title).toLowerCase().localeCompare(String(b.data.title).toLowerCase()),
+);
 ---
+
+<Layout page={page}>
+  <div class="search-list component-list">
+    <wa-input class="search-list-input" type="search" placeholder="Search Components" pill="" autofocus="" with-clear="">
+      <wa-icon name="search" slot="start"></wa-icon>
+    </wa-input>
+    <p class="search-list-shortcut">
+      Press <kbd><span class="mac-only"><span class="kbd-symbol">⌘</span>K</span><span class="non-mac">Ctrl+K</span></kbd> to search
+      from any page
+    </p>
+
+    <section class="search-list-grid">
+      {
+        pages.map(item => {
+          const component = item.data.component;
+          return (
+            <a class="hover-grow hover-emphasize-border" href={item.url}>
+              <wa-card>
+                <span class="page-name">{item.data.title}</span>
+                {component?.summary && (
+                  <p class="component-list-summary" set:html={stripTags(renderInlineMarkdown(component.summary))} />
+                )}
+                <div class="wa-cluster wa-gap-2xs component-list-badges">
+                  <ComponentMetaBadges component={component ?? {}} />
+                  {item.data.isProComponent && <ProBadge description={`Included with ${site.namePro}`} />}
+                </div>
+              </wa-card>
+            </a>
+          );
+        })
+      }
+    </section>
+
+    <SearchListEmpty message="No components match that." />
+  </div>
+
+  <style is:inline>
+    wa-page > main:has(.component-list) > .wa-prose > h1.title {
+      text-align: center;
+      margin-block-end: 0;
+    }
+  </style>
+</Layout>

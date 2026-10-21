@@ -1,3 +1,13 @@
 ---
-// STUB: port of _includes/ pending
+import { nanoid } from 'nanoid';
+
+interface Props {
+  description?: string;
+  id?: string;
+}
+
+const { description = 'This is a planned feature', id = `planned-badge-${nanoid(8)}` } = Astro.props;
 ---
+
+<wa-badge appearance="filled" variant="neutral" pill="" class="planned" id={id}>Planned</wa-badge>
+<wa-tooltip for={id}>{description}</wa-tooltip>
