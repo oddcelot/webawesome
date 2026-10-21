@@ -7,7 +7,8 @@
  *
  * - `{# #}` and `<!-- -->` comments become MDX comments
  * - `<style>` and `<script>` bodies are wrapped in template literals so CSS/JS braces survive
- * - void elements are self-closed, bare `{`, `}` and `<` in text are escaped
+ * - void elements are self-closed (stray `</input>`-style closing tags dropped), bare `{`, `}` and `<` in text are
+ *   escaped
  * - `[[key]]` becomes `<kbd>`, `==text==` becomes `<mark>`, `<https://…>` autolinks become links
  * - `:::details Title` / `:::pro Title` become `:::details[Title]` / `:::pro[Title]` (remark-directive labels)
  * - `{{ site.* }}`, `{{ statusBadge() }}` and `{% include %}` become expressions and imported components
@@ -146,7 +147,13 @@ function convertProse(text, imports) {
         j++;
       }
       let tag = text.slice(i, j + 1);
-      if (!tag.startsWith('</') && VOID_ELEMENTS.includes(m[1].toLowerCase()) && !/\/\s*>$/.test(tag)) {
+      const isVoid = VOID_ELEMENTS.includes(m[1].toLowerCase());
+      if (tag.startsWith('</') && isVoid) {
+        // `</input>` and friends are invalid HTML that browsers ignore, but JSX rejects them
+        i = j + 1;
+        continue;
+      }
+      if (isVoid && !/\/\s*>$/.test(tag)) {
         tag = tag.replace(/\s*>$/, ' />');
       }
       tag = cdnToken(tag).replace(/(["'])\{\{\s*(site(?:\.\w+)+)\s*\}\}\1/g, (_, _q, path) => {

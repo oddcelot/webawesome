@@ -8,6 +8,7 @@ import { rehypeHeadingIdPlaceholder } from './src/rehype/heading-ids.js';
 import { remarkCdnUrls } from './src/remark/cdn-urls.js';
 import { remarkCodeMeta } from './src/remark/code-meta.js';
 import { remarkContainers } from './src/remark/containers.js';
+import { remarkHtmlInlineParagraphs } from './src/remark/html-inline-paragraphs.js';
 import { remarkHtmlParagraphs } from './src/remark/html-paragraphs.js';
 import { remarkJsxBooleanAttributes } from './src/remark/jsx-boolean-attributes.js';
 
@@ -37,6 +38,7 @@ export default defineConfig({
         remarkCdnUrls,
         remarkJsxBooleanAttributes,
         remarkHtmlParagraphs,
+        remarkHtmlInlineParagraphs,
       ],
       rehypePlugins: [rehypeHeadingIdPlaceholder],
     }),
