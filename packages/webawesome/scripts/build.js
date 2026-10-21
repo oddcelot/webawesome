@@ -15,7 +15,7 @@ import { SimulateWebAwesomeApp } from '../docs/_utils/simulate-webawesome-app.js
 import { startDevServer } from './dev-server.js';
 import { generateDocs } from './docs.js';
 import { generateLlmsTxtFile } from './llms.js';
-import { bundleJs } from './pack.config.js';
+import { bundleJs, emitDeclarations } from './pack.config.js';
 import { formatError, getCdnDir, getDistDir, getDocsDir, getRootDir, getSiteDir } from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -218,11 +218,11 @@ export async function build(options = {}) {
   async function generateTypes() {
     // Used by webawesome-app to make re-rendering not miserable with extra TS compilations.
     if (process.env.SKIP_SLOW_STEPS === 'true') {
-      spinner.info('Skipping TypeScript compiler.');
+      spinner.info('Skipping type declarations.');
       return Promise.resolve();
     }
 
-    spinner.start('Running the TypeScript compiler');
+    spinner.start('Generating type declarations with Vite+ pack');
 
     const cwd = process.cwd();
     try {
@@ -230,7 +230,7 @@ export async function build(options = {}) {
         process.chdir(process.env.ROOT_DIR);
       }
       const cdnDir = getCdnDir();
-      execSync(`tsc --project ./tsconfig.prod.json --outdir "${getCdnDir()}"`, { stdio: 'inherit' });
+      await emitDeclarations({ rootDir: '.', outDir: cdnDir });
       transformTypes(cdnDir);
       process.chdir(cwd);
     } catch (error) {
@@ -239,7 +239,7 @@ export async function build(options = {}) {
         process.exit(1);
       }
 
-      return Promise.reject(error.stdout);
+      return Promise.reject(error);
     }
 
     spinner.succeed();

@@ -44,6 +44,30 @@ function replaceVersion(version) {
 }
 
 /**
+ * Emits one `.d.ts` per source file (tests excluded) into `outDir`, mirroring `src/`, the way `tsc` would.
+ * The `tsc` resolver keeps package imports such as `lit` as bare specifiers instead of paths into node_modules.
+ * @param {{ rootDir: string, outDir: string }} options
+ */
+export async function emitDeclarations({ rootDir, outDir }) {
+  const files = await globby(['src/**/*.ts', '!src/**/*.test.ts', '!src/**/*.d.ts'], { cwd: rootDir });
+  const entry = Object.fromEntries(files.map(file => [file.replace(/^src\//, '').replace(/\.ts$/, ''), file]));
+
+  await pack({
+    config: false,
+    cwd: resolve(rootDir),
+    entry,
+    unbundle: true,
+    format: 'esm',
+    platform: 'browser',
+    clean: false,
+    logLevel: 'warn',
+    outDir,
+    deps: { neverBundle: [/^[^./]/] },
+    dts: { emitDtsOnly: true, resolver: 'tsc', tsconfig: 'tsconfig.prod.json' },
+  });
+}
+
+/**
  * Builds both bundles.
  * @param {{ rootDir: string, version: string, cdnDir: string, distDir: string, isDeveloping?: boolean }} options
  */

@@ -6,7 +6,7 @@ Web Awesome — free/open-source Lit-based web component library (`@awesome.me/w
 
 ```bash
 npm start                  # Vite+ dev server (vp dev) with Lit HMR, serves index.html
-npm run start:docs         # Docs site dev server with watch mode (Vite+ pack + 11ty)
+npm run start:docs         # Docs site dev server with watch mode (Vite dev server + Vite+ pack + 11ty)
 npm run build              # Production build (scripts/build.js, bundles with Vite+ pack)
 npm test                   # Run all component tests (vp test, Vitest browser mode)
 npm run test:component -- button  # Watch single component tests
@@ -99,7 +99,7 @@ Missing tags will cause missing documentation and incomplete CEM output.
 
 ## Build System
 
-Custom build (`scripts/build.js`); JS is bundled with Vite+ pack (tsdown, `scripts/pack.config.js`). Generates:
+Custom build (`scripts/build.js`); JS bundles and `.d.ts` declarations both come from Vite+ pack (tsdown, `scripts/pack.config.js`). Type checking is `vp check`. Generates:
 
 - `dist/` — ES modules with dependencies external + TypeScript declarations
 - `dist-cdn/` — Bundled for CDN use
