@@ -1,0 +1,68 @@
+---
+import Base from './Base.astro';
+
+interface Props {
+  page: { url: string; fileSlug: string; data: Record<string, any> };
+}
+
+const { page } = Astro.props;
+const { title, officialDocs } = page.data;
+
+const feedbackTitle = `Docs feedback: ${title}`;
+const feedbackBody = `Feedback on the ${title} docs (${page.url}) — bug, use case, or feature request:`;
+const feedbackUrl = `https://github.com/shoelace-style/webawesome/discussions/new?category=ideas-suggestions&title=${encodeURIComponent(feedbackTitle)}&body=${encodeURIComponent(feedbackBody)}`;
+
+const nextSteps = [
+  { title: 'Components', href: '/docs/components', external: false, icon: 'puzzle-piece', summary: 'Start building your interface.' },
+  { title: 'CSS Utilities', href: '/docs/utilities', external: false, icon: 'wand-magic-sparkles', summary: 'Lay out and style without custom CSS.' },
+  { title: 'Theming', href: '/docs/themes', external: false, icon: 'palette', summary: 'Match Web Awesome to your brand.' },
+];
+
+if (officialDocs) {
+  nextSteps.push({ title: `${title} Docs`, href: officialDocs, external: true, icon: 'book', summary: `The official ${title} documentation.` });
+}
+---
+
+{/* Framework pages render with the page-outline body class */}
+<Base page={page} layout="page-outline" hasSidebar hasOutline hasBreadcrumbs>
+  <slot />
+  <Fragment slot="after-content">
+    <section class="modern-card-list info-cards">
+      <h2>Next Steps</h2>
+
+      <div class="search-list-grid">
+        {
+          nextSteps.map(step => (
+            <a
+              class="hover-grow hover-emphasize-border duotone-hover-context"
+              data-duotone-hover-trigger=""
+              href={step.href}
+              target={step.external ? '_blank' : undefined}
+              rel={step.external ? 'noopener noreferrer' : undefined}
+            >
+              <wa-card>
+                <wa-icon class="info-card-icon duotone-illustrated duotone-secondary-reveal" name={step.icon} family="duotone" variant="regular" />
+                <span class="page-name">{step.title}</span>
+                <p class="modern-card-summary">{step.summary}</p>
+              </wa-card>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <wa-callout variant="neutral">
+      <div class="wa-flank:end wa-gap-xl">
+        <p>
+          <strong>Using Web Awesome with {title}?</strong><br />
+          Found a bug or have a suggestion? Help make things more awesome!
+        </p>
+
+        <wa-button size="small" href={feedbackUrl} target="_blank" rel="noopener noreferrer">
+          <wa-icon slot="start" name="lightbulb-on" variant="regular" />
+          Share feedback
+        </wa-button>
+      </div>
+    </wa-callout>
+  </Fragment>
+</Base>

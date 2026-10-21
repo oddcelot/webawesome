@@ -1,0 +1,53 @@
+---
+import Base from './Base.astro';
+import Blank from './Blank.astro';
+import Component from './Component.astro';
+import Framework from './Framework.astro';
+
+/**
+ * Renders a page with the layout named in its `pageLayout` front matter (`page` when unset), the way Eleventy's `layout`
+ * key worked.
+ */
+interface Props {
+  page: { url: string; fileSlug: string; data: Record<string, any> };
+}
+
+const { page } = Astro.props;
+const layout = page.data.pageLayout || 'page';
+---
+
+{
+  layout === 'blank' ? (
+    <Blank page={page}>
+      <slot />
+    </Blank>
+  ) : layout === 'component' ? (
+    <Component page={page}>
+      <slot />
+    </Component>
+  ) : layout === 'framework' ? (
+    <Framework page={page}>
+      <slot />
+    </Framework>
+  ) : layout === 'docs' ? (
+    <Base page={page} layout="docs" hasSidebar hasOutline={page.data.hasOutline ?? true}>
+      <slot />
+    </Base>
+  ) : layout === 'page-outline' ? (
+    <Base page={page} layout="page-outline" hasSidebar hasOutline>
+      <slot />
+    </Base>
+  ) : layout === 'pattern' ? (
+    <Base page={page} layout="pattern" hasSidebar hasOutline={page.data.hasOutline ?? false}>
+      <slot />
+    </Base>
+  ) : layout === 'page' ? (
+    <Base page={page} layout="page" hasSidebar={page.data.hasSidebar ?? true} hasOutline={page.data.hasOutline ?? false}>
+      <slot />
+    </Base>
+  ) : (
+    (() => {
+      throw new Error(`Unknown layout "${layout}" in ${page.url}`);
+    })()
+  )
+}

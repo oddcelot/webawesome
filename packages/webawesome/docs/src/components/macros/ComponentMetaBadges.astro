@@ -1,0 +1,47 @@
+---
+import { createId } from '../../../_transformers/anchor-headings.js';
+import StatusBadge from './StatusBadge.astro';
+
+/**
+ * Status, optional category link, and Since badges for a component. Card callers omit `category` and `categories`,
+ * which also skips the changelog link so the badge doesn't nest an anchor inside the card's own link.
+ */
+interface Props {
+  component: { status?: string; since?: string };
+  category?: string;
+  categories?: Array<{ label: string; slug: string; icon: string }>;
+}
+
+const { component, category, categories } = Astro.props;
+const categoryEntry = category && categories ? categories.find(cat => cat.label === category) : undefined;
+
+// Pad 2-part versions (e.g. `3.6`) to match 3-part changelog headings (`## 3.6.0` → `#wa_360`).
+let sinceVersion = component.since;
+if (sinceVersion && sinceVersion.split('.').length === 2) sinceVersion += '.0';
+---
+
+<StatusBadge status={component.status} />
+{
+  categoryEntry && (
+    <a class="component-category-link" href={`/docs/components/?category=${categoryEntry.slug}`}>
+      <wa-badge variant="neutral" appearance="filled" pill="">
+        <wa-icon variant="regular" name={categoryEntry.icon} slot="start" />
+        {categoryEntry.label}
+      </wa-badge>
+    </a>
+  )
+}
+{
+  component.since &&
+    (categories ? (
+      <a class="component-since-link" href={`/docs/resources/changelog#${createId(String(sinceVersion))}`}>
+        <wa-badge variant="neutral" appearance="filled" pill="">
+          Since {component.since}
+        </wa-badge>
+      </a>
+    ) : (
+      <wa-badge variant="neutral" appearance="filled" pill="">
+        Since {component.since}
+      </wa-badge>
+    ))
+}

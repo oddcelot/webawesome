@@ -1,0 +1,10 @@
+---
+import { render } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import { getPages } from '../lib/pages.js';
+
+const page = (await getPages()).find(page => page.id === '503');
+const { Content } = await render(page.entry);
+---
+
+<Layout page={page}><Content /></Layout>

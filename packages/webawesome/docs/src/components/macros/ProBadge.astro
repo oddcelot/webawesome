@@ -1,0 +1,12 @@
+---
+import { nanoid } from 'nanoid';
+
+interface Props {
+  description?: string;
+  id?: string;
+}
+
+const { description = 'This requires access to Web Awesome Pro', id = `pro-badge-${nanoid(8)}` } = Astro.props;
+---
+
+<wa-badge appearance="accent" pill="" class="pro" id={id} data-pro-badge="">Pro</wa-badge><wa-tooltip for={id}>{description}</wa-tooltip>

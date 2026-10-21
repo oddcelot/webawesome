@@ -1,0 +1,108 @@
+---
+import { isDev, packageData, siteMetadata } from '../lib/site.js';
+import loadProComponentsSource from './load-pro-components.js?raw';
+
+interface Props {
+  page: { data: Record<string, any> };
+}
+
+const { data } = Astro.props.page;
+const appIcons = data.appIcons ?? {};
+
+// Loads pro components from the CDN when a page uses them (free repo only).
+const loadProComponents = loadProComponentsSource.replace('__VERSION__', packageData.version);
+---
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content={data.description} />
+{data.noindex && <meta name="robots" content="noindex" />}
+
+<title>{data.pageTitle}</title>
+
+{
+  /* Skip canonical + OG on noindex pages */
+  !data.noindex && (
+    <>
+      <link rel="canonical" href={data.ogUrl} />
+      <meta property="og:type" content={data.ogType} />
+      <meta property="og:url" content={data.ogUrl} />
+      <meta property="og:title" content={data.ogTitle} />
+      <meta property="og:description" content={data.ogDescription} />
+      <meta property="og:image" content={data.ogImage} />
+      {data.ogImageWidth && <meta property="og:image:width" content={data.ogImageWidth} />}
+      {data.ogImageHeight && <meta property="og:image:height" content={data.ogImageHeight} />}
+      <meta property="og:site_name" content={siteMetadata.name} />
+      <meta name="twitter:card" content="summary_large_image" />
+    </>
+  )
+}
+
+{/* Dark mode */}
+<script is:inline>
+  // Because these are in a blocking script, need to use var to prevent errors when being re-run by turbo.
+  var colorScheme = localStorage.colorScheme;
+  var isDark = localStorage.colorScheme === 'dark';
+  if (!colorScheme || colorScheme === 'auto') {
+    isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  document.documentElement.classList.toggle('wa-dark', isDark);
+
+  function setCookie(options) {
+    let { name, value, maxAge, sameSite, path } = options;
+
+    if (!sameSite) {
+      sameSite = 'Lax';
+    }
+    if (maxAge == null) {
+      maxAge = 60 * 60 * 24 * 365; // 1 year
+    }
+    if (!path) {
+      path = '/';
+    }
+
+    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; path=${path}; max-age=${maxAge}; SameSite=${sameSite}`;
+  }
+
+  function removeCookie(options) {
+    let { name, path } = options;
+    if (!path) {
+      path = '/';
+    }
+    document.cookie = `${encodeURIComponent(name)}=; path=${path}; max-age=0`;
+  }
+</script>
+
+{
+  isDev && (
+    <>
+      <script is:inline src="/assets/scripts/hydration-errors.js" />
+      <link rel="stylesheet" href="/assets/styles/hydration-errors.css" />
+    </>
+  )
+}
+
+<link rel="manifest" href="/manifest.json" />
+{/* Products built on the docs swap these through an `appIcons` data object (`ico`, `svg`, `appleTouch`); a key left out keeps the Web Awesome icon. */}
+<link rel="icon" href={appIcons.ico || '/assets/images/app-icons/favicon.ico'} sizes="any" />
+<link rel="icon" href={appIcons.svg || '/assets/images/app-icons/icon.svg'} type="image/svg+xml" />
+<link rel="apple-touch-icon" href={appIcons.appleTouch || '/assets/images/app-icons/apple-touch-icon.png'} />
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<script is:inline type="module" src="/dist/webawesome.ssr-loader.js"></script>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cera-round-pro-400.woff2" crossorigin />
+{
+  data.pageClass === 'home' && (
+    <>
+      <link rel="preload" as="image" type="image/svg+xml" href="/assets/images/bg-wa-pattern-light.svg" media="(prefers-color-scheme: light)" />
+      <link rel="preload" as="image" type="image/svg+xml" href="/assets/images/bg-wa-pattern-dark.svg" media="(prefers-color-scheme: dark)" />
+    </>
+  )
+}
+
+{/* The dev server swaps in the theme from the `webawesome_theme` cookie (see src/middleware.ts). */}
+<link id="theme-stylesheet" rel="stylesheet" href="/dist/styles/themes/default.css" render="blocking" fetchpriority="high" />
+
+<link rel="stylesheet" href="/dist/styles/webawesome.css" />
+
+<script is:inline type="module" set:html={loadProComponents} />

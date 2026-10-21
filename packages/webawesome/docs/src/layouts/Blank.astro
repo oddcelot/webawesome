@@ -1,0 +1,22 @@
+---
+import Head from '../components/Head.astro';
+import { packageData } from '../lib/site.js';
+
+interface Props {
+  page: { fileSlug: string; data: Record<string, any> };
+}
+
+const { page } = Astro.props;
+const pageType = page.data.pageClass || page.fileSlug || 'home';
+---
+
+<!doctype html>
+<html lang="en" data-fa-kit-code="38c11e3f20" data-version={packageData.version}>
+  <head>
+    <Head page={page} />
+    <slot name="head" />
+  </head>
+  <body class={`layout-blank page-${pageType}`}>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,434 @@
+---
+import ComponentMetaBadges from '../components/macros/ComponentMetaBadges.astro';
+import ProBadge from '../components/macros/ProBadge.astro';
+import { renderInlineMarkdown, renderMarkdown } from '../lib/markdown.js';
+import { cdnUrl, componentCategories, site } from '../lib/site.js';
+import Base from './Base.astro';
+
+interface Props {
+  page: { url: string; fileSlug: string; data: Record<string, any> };
+}
+
+const { page: basePage } = Astro.props;
+const component = basePage.data.component;
+if (!component) {
+  throw new Error(
+    `Unable to find "<wa-${basePage.fileSlug}>". Make sure the file name is the same as the tag name (without prefix).`,
+  );
+}
+
+// Component pages describe themselves with the component's summary
+const page = {
+  ...basePage,
+  data: { ...basePage.data, description: component.summary, ogDescription: component.summary },
+};
+const { isProComponent, category, hasAnatomy, parent } = page.data;
+
+const componentName = component.tagName.replace(/^wa-/, '');
+const componentPath = `components/${componentName}/${componentName}.js`;
+const trimPipes = value =>
+  typeof value === 'string' ? value.replace(/^(\s|\|)/g, '').replace(/(\s|\|)$/g, '') : value;
+const showAnatomy = (hasAnatomy !== false && !parent) || hasAnatomy === true;
+---
+
+<Base page={page} layout="component" hasSidebar hasOutline={page.data.hasOutline ?? true}>
+  <Fragment slot="before-content">
+    <div class="component-info wa-cluster">
+      <code class="component-tag">&lt;{component.tagName}&gt;</code>
+      <div class="wa-cluster wa-gap-xs">
+        {isProComponent && <ProBadge description={`Included with ${site.namePro}`} />}
+        <ComponentMetaBadges component={component} category={category} categories={componentCategories} />
+      </div>
+    </div>
+
+    <p class="component-summary" set:html={renderInlineMarkdown(component.summary)} />
+  </Fragment>
+
+  <slot />
+
+  <Fragment slot="after-content">
+    <h2>API</h2>
+
+    <h3>Importing</h3>
+    <p>
+      If you're using the autoloader or a hosted project, components load on demand &mdash; no manual import needed.
+      To cherry-pick a component manually, use one of the following snippets.
+    </p>
+
+    <wa-tab-group label="How would you like to import this component?" data-install-tabs="">
+      <wa-tab panel="cdn"><wa-icon name="globe" variant="regular"></wa-icon> CDN</wa-tab>
+      <wa-tab panel="npm"><wa-icon name="box-open" variant="regular"></wa-icon> npm</wa-tab>
+      <wa-tab panel="self-hosted"><wa-icon name="arrow-down-to-line" variant="regular"></wa-icon> Self-Hosted</wa-tab>
+      <wa-tab panel="react"><wa-icon name="react" family="brands"></wa-icon> React</wa-tab>
+
+      <wa-tab-panel name="cdn">
+        <p>Import this component directly from the CDN:</p>
+        <pre><code class="language-js">import '{cdnUrl(componentPath)}';</code></pre>
+      </wa-tab-panel>
+
+      <wa-tab-panel name="npm">
+        <p>After installing Web Awesome via npm, import this component:</p>
+        <pre><code class="language-js">import '@awesome.me/webawesome/dist/{componentPath}';</code></pre>
+      </wa-tab-panel>
+
+      <wa-tab-panel name="self-hosted">
+        <p>If you're self-hosting Web Awesome, import this component from your server:</p>
+        <pre><code class="language-js">import './webawesome/dist/{componentPath}';</code></pre>
+      </wa-tab-panel>
+
+      <wa-tab-panel name="react">
+        <p>To import this component for React 18 or below, use the following code:</p>
+        <pre><code class="language-js">import {component.name} from '@awesome.me/webawesome/dist/react/{componentName}/index.js';</code></pre>
+      </wa-tab-panel>
+    </wa-tab-group>
+
+    {
+      component.slots?.length > 0 && (
+        <>
+          <h3>Slots</h3>
+          <p>
+            Learn more about <a href="/docs/usage/#slots">using slots</a>.
+          </p>
+
+          <wa-scroller>
+            <table class="component-table wa-hover-rows">
+              <thead>
+                <tr>
+                  <th class="table-name">Name</th>
+                  <th class="table-description">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {component.slots.map(slot => (
+                  <tr>
+                    <td class="table-name">{slot.name ? <code>{slot.name}</code> : '(default)'}</td>
+                    <td class="table-description" set:html={renderInlineMarkdown(slot.description)} />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </wa-scroller>
+        </>
+      )
+    }
+
+    {
+      component.properties?.length > 0 && (
+        <>
+          <h3>Attributes &amp; Properties</h3>
+          <p>
+            Learn more about <a href="/docs/usage/#attributes-and-properties">attributes and properties</a>.
+          </p>
+
+          <wa-scroller>
+            <table class="component-table wa-hover-rows">
+              <thead>
+                <tr>
+                  <th class="table-name">Name</th>
+                  <th class="table-description">Description</th>
+                  <th class="table-reflect">Reflects</th>
+                </tr>
+              </thead>
+              <tbody>
+                {component.properties.map(prop => (
+                  <tr>
+                    <td class="table-name">
+                      <code title="JS property">{prop.name}</code>
+                      <br />
+                      {prop.attribute && (
+                        <div>
+                          <small>
+                            <code title="HTML attribute">{prop.attribute}</code>
+                          </small>
+                        </div>
+                      )}
+                    </td>
+                    <td class="table-description">
+                      <div set:html={renderInlineMarkdown(prop.description)} />
+                      {prop.type?.text && (
+                        <div>
+                          <small>
+                            <strong>Type</strong>&nbsp;<code>{trimPipes(prop.type.text)}</code>
+                          </small>
+                        </div>
+                      )}
+                      {prop.default && (
+                        <div>
+                          <small>
+                            <strong>Default</strong>&nbsp;<code>{prop.default}</code>
+                          </small>
+                        </div>
+                      )}
+                    </td>
+                    <td class="table-reflect">{prop.reflects && <wa-icon name="check" />}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </wa-scroller>
+        </>
+      )
+    }
+
+    {
+      component.methods?.length > 0 && (
+        <>
+          <h3>Methods</h3>
+          <p>
+            Learn more about <a href="/docs/usage/#methods">methods</a>.
+          </p>
+
+          <wa-scroller>
+            <table class="component-table wa-hover-rows">
+              <thead>
+                <tr>
+                  <th class="table-name">Name</th>
+                  <th class="table-description">Description</th>
+                  <th class="table-arguments">Arguments</th>
+                </tr>
+              </thead>
+              <tbody>
+                {component.methods.map(method => (
+                  <tr>
+                    <td class="table-name">
+                      <code>{method.name}()</code>
+                    </td>
+                    <td class="table-description" set:html={renderInlineMarkdown(method.description)} />
+                    <td class="table-arguments">
+                      {method.parameters?.length > 0 && (
+                        <code>
+                          {method.parameters
+                            .map(param => `${param.name}: ${trimPipes(param.type?.text) ?? ''}`)
+                            .join(', ')}
+                        </code>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </wa-scroller>
+        </>
+      )
+    }
+
+    {
+      component.events?.length > 0 && (
+        <>
+          <h3>Events</h3>
+          <p>
+            Learn more about <a href="/docs/usage/#events">events</a>.
+          </p>
+
+          <wa-scroller>
+            <table class="component-table wa-hover-rows">
+              <thead>
+                <tr>
+                  <th class="table-name">Name</th>
+                  <th class="table-description">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {component.events
+                  .filter(event => event.name)
+                  .map(event => (
+                    <tr>
+                      <td class="table-name">
+                        <code>{event.name}</code>
+                      </td>
+                      <td class="table-description" set:html={renderInlineMarkdown(event.description)} />
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </wa-scroller>
+        </>
+      )
+    }
+
+    {
+      component.cssProperties?.length > 0 && (
+        <>
+          <h3>CSS Custom Properties</h3>
+          <p>
+            Learn more about <a href="/docs/usage/#custom-properties">CSS custom properties</a>.
+          </p>
+
+          <wa-scroller>
+            <table class="component-table wa-hover-rows">
+              <thead>
+                <tr>
+                  <th class="table-name">Name</th>
+                  <th class="table-description">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {component.cssProperties.map(cssProperty => (
+                  <tr>
+                    <td class="table-name">
+                      <code>{cssProperty.name}</code>
+                    </td>
+                    <td class="table-description">
+                      <div set:html={renderInlineMarkdown(cssProperty.description)} />
+                      {cssProperty.default && (
+                        <div>
+                          <small>
+                            <strong>Default</strong>&nbsp;<code>{cssProperty.default}</code>
+                          </small>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </wa-scroller>
+        </>
+      )
+    }
+
+    {
+      component.cssStates?.length > 0 && (
+        <>
+          <h3>Custom States</h3>
+          <p>
+            Learn more about <a href="/docs/usage/#custom-states">custom states</a>.
+          </p>
+
+          <wa-scroller>
+            <table class="component-table wa-hover-rows">
+              <thead>
+                <tr>
+                  <th class="table-name">Name</th>
+                  <th class="table-description">Description</th>
+                  <th class="table-selector">CSS selector</th>
+                </tr>
+              </thead>
+              <tbody>
+                {component.cssStates.map(state => (
+                  <tr>
+                    <td class="table-name">
+                      <code>{state.name}</code>
+                    </td>
+                    <td class="table-description" set:html={renderInlineMarkdown(state.description)} />
+                    <td class="table-selector">
+                      <span class="wa-cluster wa-gap-3xs">
+                        <code>:state({state.name})</code>
+                        <wa-copy-button value={`:state(${state.name})`} />
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </wa-scroller>
+        </>
+      )
+    }
+
+    {
+      component.cssParts?.length > 0 && (
+        <>
+          <h3>CSS Parts</h3>
+          <p>
+            Learn more about <a href="/docs/usage/#css-parts">CSS parts</a>.
+          </p>
+
+          {/*
+            Visual anatomy diagram (progressive enhancement over the table; component-anatomy.js reads the part list
+            from these data-part-name rows). Sub-components (`parent` in front matter) are skipped automatically; opt
+            others out with `hasAnatomy: false`. The wrapper is the sticky diagram's containing block, so it releases
+            the pin when the table ends (see anatomy.css).
+          */}
+          <div class="anatomy-section">
+            {showAnatomy && (
+              <component-anatomy component={component.tagName} class="wa-not-prose wa-mask-fade-below" />
+            )}
+
+            <wa-scroller>
+              <table class="component-table wa-hover-rows" data-anatomy-table="">
+                <thead>
+                  <tr>
+                    <th class="table-name">Name</th>
+                    <th class="table-description">Description</th>
+                    <th class="table-selector">CSS selector</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {component.cssParts.map(cssPart => (
+                    <tr
+                      class={cssPart.deprecated ? 'wa-color-text-quiet' : undefined}
+                      data-part-name={cssPart.deprecated ? undefined : cssPart.name}
+                    >
+                      <td class="table-name">
+                        <code>{cssPart.name}</code>
+                      </td>
+                      <td class="table-description" set:html={renderInlineMarkdown(cssPart.description)} />
+                      <td class="table-selector">
+                        <span class="wa-cluster wa-gap-3xs">
+                          <code>::part({cssPart.name})</code>
+                          <wa-copy-button value={`::part(${cssPart.name})`} />
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </wa-scroller>
+          </div>
+        </>
+      )
+    }
+
+    {
+      component.dependencies?.length > 0 && (
+        <>
+          <h3>Dependencies</h3>
+          <p>
+            This component automatically imports the following elements. Sub-dependencies, if any exist, will also be
+            included in this list.
+          </p>
+
+          <ul class="dependency-list">
+            {component.dependencies.map(dependency => (
+              <li>
+                <a href={`/docs/components/${dependency.replace(/^wa-/, '')}`}>
+                  <code>&lt;{dependency}&gt;</code>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </>
+      )
+    }
+
+    {
+      component.ssr?.length > 0 && (
+        <>
+          <h3>SSR</h3>
+          <p>
+            Learn more about <a href="/docs/ssr">Server-Side Rendering (SSR)</a>.
+          </p>
+
+          {component.ssr.map(obj => (
+            <Fragment set:html={renderMarkdown(obj.description)} />
+          ))}
+        </>
+      )
+    }
+
+    <wa-divider></wa-divider>
+
+    <div class="component-help">
+      <strong>Need a hand?</strong>
+      <wa-button size="s" appearance="filled" variant="neutral" href={site.github.issues} target="_blank">
+        <wa-icon slot="start" variant="regular" name="bug"></wa-icon>
+        Report a bug
+      </wa-button>
+      <wa-button size="s" appearance="filled" variant="neutral" href={site.github.discussions} target="_blank">
+        <wa-icon slot="start" variant="regular" name="message-question"></wa-icon>
+        Ask for help
+      </wa-button>
+    </div>
+  </Fragment>
+</Base>

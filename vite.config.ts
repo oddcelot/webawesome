@@ -8,7 +8,9 @@ const ignorePatterns = [
   '**/_site/**',
   '**/_bundle_/**',
   'packages/*/docs/search.json',
-  'packages/*/docs/assets/scripts/prism-downloaded.js',
+  'packages/*/docs/public/assets/**',
+  'packages/*/.astro/**',
+  'packages/*/docs/.astro/**',
   'packages/*/src/components/icon/icons/**',
   'packages/*/src/react/**',
 ];
