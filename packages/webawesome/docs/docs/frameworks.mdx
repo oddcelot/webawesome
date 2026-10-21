@@ -78,7 +78,8 @@ Web Awesome is built on standard web components, so it works with any framework.
   <section class="search-list-grid">
   {[...frontmatter.frameworks]
     .sort((a, b) => (a.title < b.title ? -1 : a.title > b.title ? 1 : 0))
-    .map(framework => (
+    .map(framework => [
+      '\n',
       <a href={framework.href} class="wa-link-plain hover-grow hover-emphasize-border">
         <wa-card class="framework-card">
           <div class="framework-logo">
@@ -101,8 +102,8 @@ Web Awesome is built on standard web components, so it works with any framework.
           </div>
           <span class="page-name">{framework.title}</span>
         </wa-card>
-      </a>
-    ))}
+      </a>,
+    ])}
   </section>
 </div>
 

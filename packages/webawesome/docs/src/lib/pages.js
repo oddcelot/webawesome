@@ -54,7 +54,7 @@ function resolvePage({ id, filePath, data: rawData }, components) {
   const url = urlForId(id);
   const fileSlug = fileSlugForId(id);
   const data = applyDirectoryData(id, rawData);
-  const isComponentPage = id.startsWith('docs/components/') && !data.eleventyExcludeFromCollections;
+  const isComponentPage = id.startsWith('docs/components/') && !data.excludeFromCollections;
   const component = isComponentPage ? components.find(c => c.tagName === `wa-${fileSlug}`) : undefined;
 
   return {
@@ -110,15 +110,13 @@ export async function getAllPages() {
   return [...(await getPages()), ...getStaticPages()];
 }
 
-/** Pages that take part in collections (Eleventy skipped those with `eleventyExcludeFromCollections`). */
+/** Pages that take part in collections (sidebar, sitemap, tag lists). `excludeFromCollections` opts a page out. */
 export async function getCollectionPages() {
-  return (await getAllPages()).filter(page => !page.data.eleventyExcludeFromCollections);
+  return (await getAllPages()).filter(page => !page.data.excludeFromCollections);
 }
 
 export async function getComponentPages() {
-  return (await getPages()).filter(
-    page => page.id.startsWith('docs/components/') && !page.data.eleventyExcludeFromCollections,
-  );
+  return (await getPages()).filter(page => page.id.startsWith('docs/components/') && !page.data.excludeFromCollections);
 }
 
 export async function getTaggedPages(tag) {

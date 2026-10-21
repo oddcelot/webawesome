@@ -1,27 +1,22 @@
 import { execSync } from 'child_process';
 import { mkdir, readFile } from 'fs/promises';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { dirname, join, posix, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
+import chokidar from 'chokidar';
 import { deleteAsync } from 'del';
 import getPort, { portNumbers } from 'get-port';
 import open from 'open';
 import ora from 'ora';
 import copy from 'recursive-copy';
-import { SimulateWebAwesomeApp } from '../docs/_utils/simulate-webawesome-app.js';
-import { startDevServer } from './dev-server.js';
-import { generateDocs } from './docs.js';
+import { generateDocs, startDocsDevServer } from './docs.js';
 import { generateLlmsTxtFile } from './llms.js';
 import { bundleJs, emitDeclarations } from './pack.config.js';
-import { formatError, getCdnDir, getDistDir, getDocsDir, getRootDir, getSiteDir } from './utils.js';
+import { formatError, getCdnDir, getDistDir, getRootDir } from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-let litRenderString = str => str;
 
-const currentYear = new Date().getFullYear();
 const spinner = ora();
 
 const debugPerf = process.env.DEBUG_PERFORMANCE === '1';
@@ -34,7 +29,6 @@ if (!process.env.NODE_ENV) {
 /**
  * @typedef {Object} BuildOptions
  * @property {Array<string>} [watchedSrcDirectories]
- * @property {Array<string>} [watchedDocsDirectories]
  * @property {(eventName: "change" | "add" | "unlink", filePath: string) => unknown} [beforeWatchEvent]
  * @property {(eventName: "change" | "add" | "unlink", filePath: string) => unknown} [afterWatchEvent]
  * @property {(dir: string) => void} [transformTypes]
@@ -54,10 +48,6 @@ export async function build(options = {}) {
 
   if (!options.watchedSrcDirectories) {
     options.watchedSrcDirectories = ['src'];
-  }
-
-  if (!options.watchedDocsDirectories) {
-    options.watchedDocsDirectories = [getDocsDir()];
   }
 
   const transformTypes = options.transformTypes || (_dir => {});
@@ -93,7 +83,11 @@ export async function build(options = {}) {
       await copy(getCdnDir(), getDistDir(), { overwrite: true });
 
       await generateBundle();
-      await generateDocs({ spinner });
+
+      // In development, `astro dev` renders the docs on request instead
+      if (!isDeveloping) {
+        await generateDocs({ spinner });
+      }
 
       // Generate llms.txt (needs CEM, runs before docs)
 
@@ -107,13 +101,9 @@ export async function build(options = {}) {
 
       const time = (Date.now() - start) / 1000 + 's';
       spinner.succeed(`The build is complete ${chalk.gray(`(finished in ${time})`)}`);
-
-      // update the lit-render-string in case it changed
-      const mod = await import(path.join(getDistDir(), `ssr/render-string.js?cachebust=${new Date().getTime()}`));
-      litRenderString = mod.renderString;
     } catch (err) {
       spinner.fail();
-      console.log(chalk.red(`\n${err}`));
+      console.log(chalk.red(`\n${formatError(err)}`));
     }
   }
 
@@ -264,7 +254,7 @@ export async function build(options = {}) {
       });
     } catch (error) {
       spinner.fail();
-      console.log(chalk.red(`\n${error}`));
+      console.log(chalk.red(`\n${formatError(error)}`));
       if (!isDeveloping) {
         process.exit(1);
       }
@@ -291,30 +281,7 @@ export async function build(options = {}) {
     spinner.start('Launching the dev server');
 
     const port = await getPort({ port: portNumbers(4000, 4999) });
-
-    await initLitSsr();
-
-    const devServer = await startDevServer({
-      port,
-      siteDir: getSiteDir(),
-      cdnDir: getCdnDir(),
-      // A second nunjucks pass (simulating the webawesome-app), then optional SSR
-      transformHtml: (html, req) => {
-        const ssr = req?.query?.ssr || req?.cookies?.webawesome_ssr === 'true';
-        let transformedStr = SimulateWebAwesomeApp(html, {
-          isDev: process.env.NODE_ENV === 'development',
-          NODE_ENV: process.env.NODE_ENV,
-          ssr,
-          req,
-        });
-
-        if (ssr) {
-          transformedStr = litRenderString(transformedStr);
-        }
-
-        return transformedStr;
-      },
-    });
+    const devServer = await startDocsDevServer({ port });
     const url = devServer.url;
     const reload = () => {
       spinner.start('Reloading browser');
@@ -324,12 +291,12 @@ export async function build(options = {}) {
 
     spinner.succeed();
     console.log(`\nThe dev server is running at ${chalk.cyan(url)}\n`);
-    open(url);
+    void open(url);
 
+    // Astro reloads docs changes on its own. Component sources need a rebuild of dist-cdn first.
     const watchEvents = ['change', 'unlink', 'add'];
-    // Rebuild and reload when source files change
     options.watchedSrcDirectories.forEach(dir => {
-      const watcher = devServer.watch(join(dir, '**', '*.*'), { ignored: /\.test\.[^/]*$/ });
+      const watcher = chokidar.watch(join(dir, '**', '*.*'), { ignoreInitial: true, ignored: /\.test\.[^/]*$/ });
 
       watchEvents.forEach(evt => {
         watcher.on(evt, handleWatchEvent(evt));
@@ -352,7 +319,6 @@ export async function build(options = {}) {
             const isComponent =
               filename.includes('components/') && filename.includes('.ts') && !isCssStylesheet && !isTestFile;
 
-            // Re-bundle when relevant files change
             if (isTestFile) {
               return;
             }
@@ -375,10 +341,6 @@ export async function build(options = {}) {
             // this may cause watcher events to break. if things are broken with file watching, comment this out.
             await copy(getCdnDir(), getDistDir(), { overwrite: true });
             await regenerateBundle();
-            await initLitSsr(); // Reload components SSR definitions.
-
-            // This needs to be outside of "isComponent" check because SSR needs to run on CSS files too.
-            await generateDocs({ spinner });
 
             if (typeof options.afterWatchEvent === 'function') {
               await options.afterWatchEvent(evt, filename);
@@ -387,53 +349,7 @@ export async function build(options = {}) {
             reload();
           } catch (err) {
             console.error(chalk.red(formatError(err)));
-
-            if (!isDeveloping) {
-              process.exit(1);
-            }
           }
-        };
-      }
-    });
-
-    // Rebuild the docs and reload when the docs change
-    options.watchedDocsDirectories.forEach(dir => {
-      const watcher = devServer.watch(join(dir, '**', '*.*'));
-
-      watchEvents.forEach(evt => {
-        watcher.on(evt, handleWatchEvent(evt));
-      });
-
-      function handleWatchEvent(evt) {
-        return async filename => {
-          const changedFile = relative(getRootDir(), filename);
-
-          let message = '';
-          if (evt === 'change') {
-            message = chalk.blue(`File modified ${chalk.gray(`(${changedFile})`)}`);
-          } else if (evt === 'unlink') {
-            message = chalk.red(`File deleted ${chalk.gray(`(${changedFile})`)}`);
-          } else if (evt === 'add') {
-            message = chalk.green(`File added ${chalk.gray(`(${changedFile})`)}`);
-          }
-
-          if (message) {
-            if (spinner) {
-              spinner.info(message);
-            } else {
-              console.log(message);
-            }
-          }
-
-          if (typeof options.beforeWatchEvent === 'function') {
-            await options.beforeWatchEvent(evt, filename);
-          }
-          await generateDocs({ spinner });
-
-          if (typeof options.afterWatchEvent === 'function') {
-            await options.afterWatchEvent(evt, filename);
-          }
-          reload();
         };
       }
     });
@@ -467,23 +383,6 @@ function isRunAsMain() {
   }
 
   return false;
-}
-
-async function loadComponents() {
-  const baseDir = path.join(getDistDir(), 'components');
-  await Promise.allSettled(
-    fs.readdirSync(baseDir, { recursive: false, encoding: 'utf8' }).map(dir => {
-      const component = path.basename(dir);
-
-      const modulePath = path.join(baseDir, component, component + '.js');
-
-      return import(modulePath + `?cachebust=${new Date().getTime()}`);
-    }),
-  );
-}
-
-export async function initLitSsr() {
-  await loadComponents();
 }
 
 if (isRunAsMain()) {

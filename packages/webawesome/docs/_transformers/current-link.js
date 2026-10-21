@@ -35,7 +35,7 @@ function markCurrent(el, pageUrl, className) {
 }
 
 /**
- * Eleventy plugin to decorate current links with a custom class.
+ * HTML transformer to decorate current links with a custom class.
  * Matches `<a href>` and `<wa-button href>` (e.g. subheader nav).
  */
 export function currentLinkTransformer(options = {}) {

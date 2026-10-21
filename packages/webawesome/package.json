@@ -60,7 +60,7 @@
   },
   "scripts": {
     "start": "vp dev",
-    "start:docs": "node scripts/build.js --develop --no-incremental",
+    "start:docs": "node scripts/build.js --develop",
     "start:alpha": "echo 'This command has been deprecated. Use: \"npm start\"\n'",
     "build": "node scripts/build.js",
     "build:serve": "vp run build && npx http-server _site -p 4000",
@@ -78,7 +78,7 @@
     "test:watch": "vp test watch",
     "check": "vp check",
     "fmt": "vp fmt",
-    "spellcheck": "cspell \"**/*.{js,ts,json,html,css,md}\" --no-progress --config=\"../../cspell.json\"",
+    "spellcheck": "cspell \"**/*.{js,ts,json,html,css,md,mdx,astro}\" --no-progress --config=\"../../cspell.json\"",
     "verify:skills": "node scripts/verify-skills.js",
     "verify": "vp check && vp run test:parts && vp run test:anatomy && vp run build && vp run verify:skills && vp run test",
     "prepublishOnly": "vp run verify",
@@ -88,7 +88,7 @@
     "postversion": "node ./scripts/update-root-version.js"
   },
   "engines": {
-    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
+    "node": "^22.22.0 || ^24.11.0 || >=26.0.0"
   },
   "dependencies": {
     "@ctrl/tinycolor": "4.1.0",
@@ -113,13 +113,12 @@
     "@wc-toolkit/cem-validator": "^1.0.3",
     "@wc-toolkit/jsx-types": "^1.6.0",
     "astro": "7.4.1",
-    "cookie-parser": "^1.4.7",
-    "eleventy-plugin-git-commit-date": "^0.1.3",
     "gray-matter": "^4.0.3",
     "npm-check-updates": "^19.1.2",
     "open": "^11.0.0",
     "remark-directive": "^4.0.0",
     "semver": "^7.8.5",
+    "slugify": "1.6.9",
     "turndown": "^7.2.2",
     "unist-util-visit": "^5.1.0",
     "vite-plus": "1.3.0"

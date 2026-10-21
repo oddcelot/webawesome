@@ -15,4 +15,3 @@ custom-elements.json
 .claude/settings.local.json
 **/.claude/scheduled_tasks.lock
 .astro
-_site-astro

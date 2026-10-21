@@ -489,10 +489,10 @@ function loadAllFrontMatter(docsDir) {
     return cache;
   }
 
-  const files = fs.readdirSync(componentsDir).filter(f => f.endsWith('.md'));
+  const files = fs.readdirSync(componentsDir).filter(f => f.endsWith('.mdx'));
 
   for (const file of files) {
-    const componentName = file.replace('.md', '');
+    const componentName = file.replace('.mdx', '');
     const mdPath = path.join(componentsDir, file);
 
     try {
@@ -517,10 +517,10 @@ function loadFrontMatterFromDir(dirPath) {
     return cache;
   }
 
-  const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.md'));
+  const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.mdx'));
 
   for (const file of files) {
-    const name = file.replace('.md', '');
+    const name = file.replace('.mdx', '');
     const mdPath = path.join(dirPath, file);
 
     try {
@@ -1050,7 +1050,7 @@ function copyAndProcessDoc(siteDir, docsDir, destDir, htmlRelPath, destFileName,
   const htmlPath = path.join(siteDir, htmlRelPath);
 
   // Get frontmatter from source markdown for title
-  const mdRelPath = options.mdPath || htmlRelPath.replace('docs/', 'docs/docs/').replace('/index.html', '.md');
+  const mdRelPath = options.mdPath || htmlRelPath.replace('docs/', 'docs/docs/').replace('/index.html', '.mdx');
   const mdPath = path.join(docsDir, mdRelPath);
 
   let frontmatter = {};
@@ -1209,7 +1209,7 @@ export async function generateAgentSkill(options = {}) {
 
   // Check if _site exists
   if (!fs.existsSync(siteDir)) {
-    console.warn(`Warning: _site directory not found at ${siteDir}. Run Eleventy build first.`);
+    console.warn(`Warning: _site directory not found at ${siteDir}. Run the docs build first.`);
     return;
   }
 
@@ -1264,68 +1264,68 @@ export async function generateAgentSkill(options = {}) {
   // Copy and process documentation files from rendered HTML
   copyAndProcessDoc(siteDir, docsDir, refsDir, 'docs/index.html', 'installation.md', baseUrl, {
     docPath: 'docs',
-    mdPath: 'docs/index.md',
+    mdPath: 'docs/index.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, refsDir, 'docs/usage/index.html', 'usage.md', baseUrl, {
     docPath: 'docs/usage',
-    mdPath: 'docs/usage.md',
+    mdPath: 'docs/usage.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, refsDir, 'docs/form-controls/index.html', 'form-controls.md', baseUrl, {
     docPath: 'docs/form-controls',
-    mdPath: 'docs/form-controls.md',
+    mdPath: 'docs/form-controls.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, refsDir, 'docs/customizing/index.html', 'customizing.md', baseUrl, {
     docPath: 'docs/customizing',
-    mdPath: 'docs/customizing.md',
+    mdPath: 'docs/customizing.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, refsDir, 'docs/localization/index.html', 'localization.md', baseUrl, {
     docPath: 'docs/localization',
-    mdPath: 'docs/localization.md',
+    mdPath: 'docs/localization.mdx',
   });
 
   // Framework docs
   copyAndProcessDoc(siteDir, docsDir, frameworksDir, 'docs/frameworks/react/index.html', 'react.md', baseUrl, {
     docPath: 'docs/frameworks/react',
-    mdPath: 'docs/frameworks/react.md',
+    mdPath: 'docs/frameworks/react.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, frameworksDir, 'docs/frameworks/vue/index.html', 'vue.md', baseUrl, {
     docPath: 'docs/frameworks/vue',
-    mdPath: 'docs/frameworks/vue.md',
+    mdPath: 'docs/frameworks/vue.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, frameworksDir, 'docs/frameworks/angular/index.html', 'angular.md', baseUrl, {
     docPath: 'docs/frameworks/angular',
-    mdPath: 'docs/frameworks/angular.md',
+    mdPath: 'docs/frameworks/angular.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, frameworksDir, 'docs/frameworks/svelte/index.html', 'svelte.md', baseUrl, {
     docPath: 'docs/frameworks/svelte',
-    mdPath: 'docs/frameworks/svelte.md',
+    mdPath: 'docs/frameworks/svelte.mdx',
   });
 
   // Utility docs
   generateLayoutUtilitiesDoc(siteDir, docsDir, utilitiesDir, baseUrl);
   copyAndProcessDoc(siteDir, docsDir, utilitiesDir, 'docs/utilities/native/index.html', 'native.md', baseUrl, {
     docPath: 'docs/utilities/native',
-    mdPath: 'docs/utilities/native.md',
+    mdPath: 'docs/utilities/native.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, utilitiesDir, 'docs/utilities/text/index.html', 'text.md', baseUrl, {
     docPath: 'docs/utilities/text',
-    mdPath: 'docs/utilities/text.md',
+    mdPath: 'docs/utilities/text.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, utilitiesDir, 'docs/utilities/color/index.html', 'color.md', baseUrl, {
     docPath: 'docs/utilities/color',
-    mdPath: 'docs/utilities/color.md',
+    mdPath: 'docs/utilities/color.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, utilitiesDir, 'docs/utilities/fouce/index.html', 'fouce.md', baseUrl, {
     docPath: 'docs/utilities/fouce',
-    mdPath: 'docs/utilities/fouce.md',
+    mdPath: 'docs/utilities/fouce.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, utilitiesDir, 'docs/utilities/rounding/index.html', 'rounding.md', baseUrl, {
     docPath: 'docs/utilities/rounding',
-    mdPath: 'docs/utilities/rounding.md',
+    mdPath: 'docs/utilities/rounding.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, utilitiesDir, 'docs/utilities/prose/index.html', 'prose.md', baseUrl, {
     docPath: 'docs/utilities/prose',
-    mdPath: 'docs/utilities/prose.md',
+    mdPath: 'docs/utilities/prose.mdx',
   });
   copyAndProcessDoc(
     siteDir,
@@ -1336,18 +1336,18 @@ export async function generateAgentSkill(options = {}) {
     baseUrl,
     {
       docPath: 'docs/utilities/visually-hidden',
-      mdPath: 'docs/utilities/visually-hidden.md',
+      mdPath: 'docs/utilities/visually-hidden.mdx',
     },
   );
 
   // Design token docs
   copyAndProcessDoc(siteDir, docsDir, tokensDir, 'docs/tokens/borders/index.html', 'borders.md', baseUrl, {
     docPath: 'docs/tokens/borders',
-    mdPath: 'docs/tokens/borders.md',
+    mdPath: 'docs/tokens/borders.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, tokensDir, 'docs/tokens/color/index.html', 'color.md', baseUrl, {
     docPath: 'docs/tokens/color',
-    mdPath: 'docs/tokens/color.md',
+    mdPath: 'docs/tokens/color.mdx',
   });
   copyAndProcessDoc(
     siteDir,
@@ -1358,28 +1358,28 @@ export async function generateAgentSkill(options = {}) {
     baseUrl,
     {
       docPath: 'docs/tokens/component-groups',
-      mdPath: 'docs/tokens/component-groups.md',
+      mdPath: 'docs/tokens/component-groups.mdx',
     },
   );
   copyAndProcessDoc(siteDir, docsDir, tokensDir, 'docs/tokens/focus/index.html', 'focus.md', baseUrl, {
     docPath: 'docs/tokens/focus',
-    mdPath: 'docs/tokens/focus.md',
+    mdPath: 'docs/tokens/focus.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, tokensDir, 'docs/tokens/shadows/index.html', 'shadows.md', baseUrl, {
     docPath: 'docs/tokens/shadows',
-    mdPath: 'docs/tokens/shadows.md',
+    mdPath: 'docs/tokens/shadows.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, tokensDir, 'docs/tokens/space/index.html', 'space.md', baseUrl, {
     docPath: 'docs/tokens/space',
-    mdPath: 'docs/tokens/space.md',
+    mdPath: 'docs/tokens/space.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, tokensDir, 'docs/tokens/transitions/index.html', 'transitions.md', baseUrl, {
     docPath: 'docs/tokens/transitions',
-    mdPath: 'docs/tokens/transitions.md',
+    mdPath: 'docs/tokens/transitions.mdx',
   });
   copyAndProcessDoc(siteDir, docsDir, tokensDir, 'docs/tokens/typography/index.html', 'typography.md', baseUrl, {
     docPath: 'docs/tokens/typography',
-    mdPath: 'docs/tokens/typography.md',
+    mdPath: 'docs/tokens/typography.mdx',
   });
 
   // Copy to additional directories

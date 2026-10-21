@@ -100,7 +100,7 @@ const loadProComponents = loadProComponentsSource.replace('__VERSION__', package
   )
 }
 
-{/* The dev server swaps in the theme from the `webawesome_theme` cookie (see src/middleware.ts). */}
+{/* The dev server swaps in the theme from the `webawesome_theme` cookie (see src/dev-request-pass.js). */}
 <link id="theme-stylesheet" rel="stylesheet" href="/dist/styles/themes/default.css" render="blocking" fetchpriority="high" />
 
 <link rel="stylesheet" href="/dist/styles/webawesome.css" />

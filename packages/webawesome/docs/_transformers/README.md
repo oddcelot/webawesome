@@ -1,6 +1,6 @@
 # Doc transformers
 
-Build-time HTML transforms that run on every rendered Eleventy page. Each module exports a factory that returns a function `(doc) => void`, which mutates the parsed HTML document in place. They're registered as a single `doc-transforms` Eleventy transform in [`../.eleventy.js`](../.eleventy.js).
+HTML transforms that run on every rendered page. Each module exports a factory that returns a function `(doc) => void`, which mutates the parsed HTML document in place. [`../src/lib/html-pipeline.js`](../src/lib/html-pipeline.js) runs them from the Astro middleware, so they apply to prerendered pages and to `astro dev` alike. Transformers that need the page URL read it from `this.page.url`.
 
 ## Pipeline
 
@@ -16,8 +16,6 @@ Order matters — each transformer sees the output of the previous one.
 | `copy-code.js`            | Adds copy buttons to `<pre>` blocks.                                                 |
 | `changelog-list-icons.js` | Replaces bullets in `.changelog-group-*` containers with category icons.             |
 | `linkify-components.js`   | Wraps inline `<code>` mentions of `<wa-*>` tags in anchors to their docs pages.      |
-
-`format-code.js` lives in this folder but is a Prettier helper, not a transformer. It's used by other tools, not registered in the pipeline.
 
 ## Opt-out attributes
 
@@ -58,6 +56,6 @@ Skip a whole region:
 ## Adding a transformer
 
 1. Create the file in this folder. Export a factory: `export function myTransformer(options) { return function (doc) { /* ... */ }; }`.
-2. Import and add to the `transformers` array in [`../.eleventy.js`](../.eleventy.js).
+2. Import and add to the `transformers` array in [`../src/lib/html-pipeline.js`](../src/lib/html-pipeline.js).
 3. If the transformer scans content for replacement, support a `data-no-*` opt-out via `closest()` and document it in the table above.
 4. Use the existing transformers as a reference for `node-html-parser` patterns (`querySelectorAll`, `closest`, `insertAdjacentHTML`, `replaceWith`).

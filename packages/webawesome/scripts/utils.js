@@ -11,14 +11,12 @@ export const getDistDir = () => process.env.DIST_DIR || join(getRootDir(), 'dist
 export const getCdnDir = () => process.env.CDN_DIR || join(getRootDir(), 'dist-cdn');
 export const getDocsDir = () => process.env.DOCS_DIR || join(getRootDir(), 'docs');
 export const getSiteDir = () => process.env.SITE_DIR || join(getRootDir(), '_site');
-export const getEleventyConfigPath = () => process.env.ELEVENTY_CONFIG_PATH || join(getDocsDir(), '.eleventy.js');
 
 /**
- * Formats an error for display in dev terminals. 11ty wraps template
- * failures in a TemplateContentRenderError whose `originalError` carries
- * the actionable detail (file path, line, column). For the inner error
- * we prefer `.message` over `.stack` because the message already has
- * everything useful and the stack adds many lines of internal frames.
+ * Formats an error for display in dev terminals. Wrapped errors carry the
+ * actionable detail (file path, line, column) in `originalError` or `cause`.
+ * For the inner error we prefer `.message` over `.stack` because the message
+ * already has everything useful and the stack adds many lines of internal frames.
  */
 export function formatError(err) {
   const inner = err?.originalError || err?.cause;

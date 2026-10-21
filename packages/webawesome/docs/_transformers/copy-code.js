@@ -15,7 +15,7 @@ export function copyCode(code) {
 }
 
 /**
- * Eleventy plugin to add copy buttons to code blocks.
+ * HTML transformer to add copy buttons to code blocks.
  */
 export function copyCodeTransformer(options = {}) {
   options = {

@@ -28,12 +28,12 @@ function hasNoDiagram(fm) {
 
 export async function check(options = {}) {
   const rootDir = options.rootDir || root;
-  const files = await globby('docs/docs/components/*.md', { cwd: rootDir, absolute: true });
+  const files = await globby('docs/docs/components/*.mdx', { cwd: rootDir, absolute: true });
 
   const failures = [];
 
   for (const file of files.sort()) {
-    const slug = basename(file, '.md');
+    const slug = basename(file, '.mdx');
     const tag = `wa-${slug}`;
     const source = await readFile(file, 'utf8');
     const fm = frontMatter(source);

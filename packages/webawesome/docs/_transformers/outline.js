@@ -1,7 +1,7 @@
 import { parse } from 'node-html-parser';
 
 /**
- * Eleventy plugin to add an outline (table of contents) to the page. Headings must have an id, otherwise they won't be
+ * HTML transformer to add an outline (table of contents) to the page. Headings must have an id, otherwise they won't be
  * included in the outline. An unordered list containing links will be appended to the target element.
  *
  * If no headings are found for the outline, the `ifEmpty()` function will be called with a `node-html-parser` object as

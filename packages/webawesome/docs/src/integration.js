@@ -5,6 +5,7 @@ import { generateAgentSkill } from '../../scripts/agent-skill.js';
 import { generateDesignSkill } from '../../scripts/design-skill.js';
 import { getCdnDir } from '../../scripts/utils.js';
 import { buildSearchIndex } from '../_plugins/search.js';
+import { devRequestPass } from './dev-request-pass.js';
 import { stripSiteTitleSuffix } from './lib/site.js';
 
 const MIME_TYPES = {
@@ -44,6 +45,9 @@ export function docsIntegration() {
     hooks: {
       'astro:server:setup': ({ server }) => {
         serveDist(server);
+        server.middlewares.use(devRequestPass({ distDir: process.env.UNBUNDLED_DIST_DIRECTORY }));
+        // scripts/build.js reloads the browser through this after rebuilding the components
+        globalThis.webawesomeDocsViteServer = server;
       },
       'astro:build:done': async ({ dir, logger }) => {
         const siteDir = fileURLToPath(dir);

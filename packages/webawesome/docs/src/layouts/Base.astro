@@ -40,7 +40,7 @@ const pageType = data.pageClass || page.fileSlug || 'home';
 const themeClasses =
   layout === 'site' || pageType === 'home'
     ? 'wa-brand-orange wa-palette-default wa-theme-site'
-    : // The dev server fills these in from the theme cookies (see src/middleware.ts).
+    : // The dev server fills these in from the theme cookies (see src/dev-request-pass.js).
       'wa-brand- wa-palette- wa-theme-';
 
 // Full-bleed pages (hasFramedMain: false) own their typography, so a stray hasProseContent inherited from the

@@ -5,7 +5,7 @@ import { copyCode } from './copy-code.js';
 import { highlightCode } from './highlight-code.js';
 
 /**
- * Eleventy plugin to turn `<code class="example">` blocks into live examples.
+ * HTML transformer to turn `<code class="example">` blocks into live examples.
  */
 export function codeExamplesTransformer(options = {}) {
   options = {

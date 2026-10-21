@@ -6,7 +6,7 @@ import markdownItKbd from 'markdown-it-kbd';
 import markdownItMark from 'markdown-it-mark';
 
 /**
- * A custom Markdown It instance with added features.
+ * The markdown-it setup the Eleventy build used, for markdown rendered from strings (see markdown.js).
  */
 export const markdown = MarkdownIt({
   html: true,

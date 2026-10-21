@@ -83,13 +83,13 @@ Most of Web Awesome's technical documentation is generated with JSDoc comments a
 
 Instructions, code examples, and interactive demos are hand-curated to give users the best possible experience. Typically, the most relevant information is shown first and less common examples are shown towards the bottom. Edge cases and gotchas should be called out in context with tips or warnings.
 
-The docs are powered by [Eleventy](https://www.11ty.dev/). Check out `docs/components/*.md` to get an idea of how pages are structured and formatted. If you're creating a new component, it may help to use an existing component's markdown file as a template.
+The docs are powered by [Astro](https://astro.build/) and written in [MDX](https://mdxjs.com/). Check out `docs/components/*.mdx` to get an idea of how pages are structured and formatted. If you're creating a new component, it may help to use an existing component's page as a template.
 
 If you need help with documentation, feel free to reach out on the <a href={site.urls.discord}>community chat</a>.
 
 ### Web Awesome-Flavored Markdown
 
-The Web Awesome documentation uses an extended version of [markdown-it](https://github.com/markdown-it/markdown-it). Generally speaking, it follows the [Commonmark spec](https://spec.commonmark.org/) while sprinkling in some additional features.
+The Web Awesome documentation is MDX, so it follows the [Commonmark spec](https://spec.commonmark.org/) with a few additions of our own. Because it's MDX, HTML has to be valid JSX: close every element (`<br />`, `<img ... />`), write comments as `\{/* ... */\}`, and escape literal braces in prose as `\{` and `\}`. Code blocks are left as-is.
 
 #### Code Previews
 
@@ -143,12 +143,12 @@ unpublished: true
 ---
 ```
 
-To build a page, but not add it to any search indexes and collections so they don't appear in the sidebar, use `unlisted: true, eleventyExcludeFromCollections: true` key / value pairs.
+Pick the page layout with `pageLayout` (`docs`, `component`, `page`, `page-outline`, `framework`, `pattern`, or `blank`). To build a page, but not add it to any search indexes and collections so they don't appear in the sidebar, use `unlisted: true, excludeFromCollections: true` key / value pairs.
 
 ```md
 ---
 unlisted: true
-eleventyExcludeFromCollections: true
+excludeFromCollections: true
 ---
 ```
 
@@ -507,7 +507,7 @@ npx vp test run src/components/button/button.test.ts --project chromium
 
 Web Awesome stands on the shoulders of some excellent open source projects. Special thanks to:
 
-- [Eleventy](https://www.11ty.dev/) — the static site generator powering the docs
+- [Astro](https://astro.build/) — the static site generator powering the docs
 - [Lit](https://lit.dev/) — the web component library Web Awesome's components are authored in
 - [Custom Elements Manifest Analyzer](https://github.com/open-wc/custom-elements-manifest) — generates the component API metadata that drives the docs and editor tooling
 - [Floating UI](https://floating-ui.com/) — positioning for popovers, tooltips, and other anchored UI

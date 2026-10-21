@@ -62,9 +62,9 @@ async function getComponentUrls(options = {}) {
   }
 
   console.log({ rootDir });
-  const files = await globby('docs/docs/components/*.md', { cwd: rootDir, absolute: false });
+  const files = await globby('docs/docs/components/*.mdx', { cwd: rootDir, absolute: false });
   return files
-    .map(file => basename(file, '.md'))
+    .map(file => basename(file, '.mdx'))
     .sort()
     .map(name => `${BASE_URL}/docs/components/${name}/?ssr=true`);
 }

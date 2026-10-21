@@ -17,7 +17,7 @@ export function createId(text) {
 }
 
 /**
- * Eleventy plugin to add anchors to headings to content.
+ * HTML transformer to add anchors to headings to content.
  */
 export function anchorHeadingsTransformer(options = {}) {
   options = {

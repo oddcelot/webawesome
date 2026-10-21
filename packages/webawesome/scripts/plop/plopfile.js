@@ -47,7 +47,7 @@ export default function (plop) {
       },
       {
         type: 'add',
-        path: '../../docs/docs/components/{{ tagWithoutPrefix tag }}.md',
+        path: '../../docs/docs/components/{{ tagWithoutPrefix tag }}.mdx',
         templateFile: 'templates/component/docs.hbs',
       },
     ],

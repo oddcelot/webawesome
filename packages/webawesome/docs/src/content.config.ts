@@ -26,7 +26,7 @@ const pageSchema = z
     noindex: z.boolean().optional(),
     unlisted: z.boolean().optional(),
     unpublished: z.boolean().optional(),
-    eleventyExcludeFromCollections: z.boolean().optional(),
+    excludeFromCollections: z.boolean().optional(),
     sidebarHidden: z.boolean().optional(),
     isProComponent: z.boolean().optional(),
     pageClass: z.string().optional(),

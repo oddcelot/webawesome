@@ -6,7 +6,7 @@ Web Awesome — free/open-source Lit-based web component library (`@awesome.me/w
 
 ```bash
 npm start                  # Vite+ dev server (vp dev) with Lit HMR, serves index.html
-npm run start:docs         # Docs site dev server with watch mode (Vite dev server + Vite+ pack + 11ty)
+npm run start:docs         # Docs dev server: astro dev on :4000, rebuilds dist-cdn when src/ changes
 npm run build              # Production build (scripts/build.js, bundles with Vite+ pack)
 npm test                   # Run all component tests (vp test, Vitest browser mode)
 npm run test:component -- button  # Watch single component tests
@@ -114,7 +114,7 @@ Custom build (`scripts/build.js`); JS bundles and `.d.ts` declarations both come
 - `src/styles/` — Shared styles, themes, color palettes, CSS utilities
 - `src/events/` — Custom event class definitions
 - `src/translations/` — i18n message files (30+ locales)
-- `docs/` — Component documentation (11ty/Nunjucks)
+- `docs/` — Documentation site (Astro + MDX). Content in `docs/docs/**/*.mdx`; layouts, components and the build glue in `docs/src/`
 
 ## Common Tasks
 
@@ -124,5 +124,5 @@ Custom build (`scripts/build.js`); JS bundles and `.d.ts` declarations both come
 - **Add a CSS part**: Add `part="name"` to element in `render()`, add `@csspart name` JSDoc tag.
 - **Add a custom event**: Create event class in `src/events/`, dispatch with `this.dispatchEvent(new WaEventClass())`, add `@event wa-event-name` JSDoc tag.
 - **Add a test**: Import `{ fixtures }` from `src/internal/test/fixture.js`, loop `for (const fixture of fixtures)`, use `await fixture<Type>(html`...`)`.
-- **Doc page**: Create `docs/docs/components/name.md` with front matter (`title`, `description`, `layout: component`, `category`). Use ` ```html {.example} ` for live code blocks.
-- **Update the changelog**: Add entries to the "Unreleased" section in `docs/docs/resources/changelog.md`. Create the section if it doesn't exist. Group entries under `:::added`, `:::fixed`, `:::changed`, `:::deprecated`, `:::removed`, `:::breaking` containers in that order; omit any category with no entries. **Keep entries clear and succinct** — announce what changed at a glance, trim redundant prose, and nest closely related additions as sub-bullets so the parent reads as a topic and children carry the detail.
+- **Doc page**: Create `docs/docs/components/name.mdx` with front matter (`title`, `description`, `pageLayout: component`, `category`). Use ` ```html {.example} ` for live code blocks. Pages are MDX, so HTML outside code blocks must be valid JSX (self-close void elements, `{/* */}` comments, escape literal `{` `}`).
+- **Update the changelog**: Add entries to the "Unreleased" section in `docs/docs/resources/changelog.mdx`. Create the section if it doesn't exist. Group entries under `:::added`, `:::fixed`, `:::changed`, `:::deprecated`, `:::removed`, `:::breaking` containers in that order; omit any category with no entries. **Keep entries clear and succinct** — announce what changed at a glance, trim redundant prose, and nest closely related additions as sub-bullets so the parent reads as a topic and children carry the detail.

@@ -26,7 +26,8 @@ Web Awesome themes apply a cohesive look and feel across the entire library, bui
 A theme is the overall look — fonts, borders, space, shadows, and how each [variant](/docs/tokens/color#variant-colors) gets used across components. Two themes can share a [palette](/docs/color-palettes) and [variants](/docs/tokens/color#variant-colors) and still feel completely different. Themes ship with a default palette and may include custom CSS overrides for individual components.
 
 <wa-carousel class="theme-showcase" pagination loop mouse-dragging>
-  {themes.map(theme => (
+  {themes.map(theme => [
+    '\n',
     <wa-carousel-item>
       <figure>
         <div class="theme-frame">
@@ -36,13 +37,15 @@ A theme is the overall look — fonts, borders, space, shadows, and how each [va
         <figcaption class="wa-stack wa-gap-3xs">
           <div class="wa-cluster wa-gap-xs wa-font-size-m">
             <strong>{theme.name}</strong>
+            {theme.isPro && '\n'}
             {theme.isPro && <ProBadge description={`This theme requires access to ${site.namePro}`} />}
           </div>
+          {'\n'}
           <div class="wa-font-size-s">{theme.description}</div>
         </figcaption>
       </figure>
-    </wa-carousel-item>
-  ))}
+    </wa-carousel-item>,
+  ])}
 </wa-carousel>
 
 <style>{`

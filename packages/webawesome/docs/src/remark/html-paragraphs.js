@@ -4,6 +4,9 @@ import { visit } from 'unist-util-visit';
  * markdown-it passes raw HTML blocks through untouched until the next blank line, but MDX parses the children of
  * an HTML element as markdown and wraps loose text in `<p>`. This unwraps paragraphs that sit directly against
  * their parent tag or sibling (no blank line between), which is the case markdown-it would have left alone.
+ *
+ * MDX also drops the line breaks between sibling elements, so `<wa-badge>A</wa-badge>` and `<wa-badge>B</wa-badge>`
+ * on consecutive lines would render with no space between them. The breaks are put back as text.
  */
 export function remarkHtmlParagraphs() {
   return (tree, file) => {
@@ -27,6 +30,12 @@ export function remarkHtmlParagraphs() {
           nextStart !== undefined && isBlank(child.position.end.line + 1) && nextStart > child.position.end.line + 1;
 
         return separatedBefore || separatedAfter ? [child] : child.children;
+      });
+
+      node.children = node.children.flatMap((child, index) => {
+        const next = node.children[index + 1];
+        const breaksLine = next?.position && child.position && next.position.start.line > child.position.end.line;
+        return breaksLine ? [child, { type: 'text', value: '\n' }] : [child];
       });
     });
   };

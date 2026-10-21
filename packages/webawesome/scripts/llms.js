@@ -22,7 +22,7 @@ function loadAllFrontMatter(components, docsDir) {
     }
 
     const componentName = component.tagName.replace(/^wa-/, '');
-    const mdPath = path.join(docsDir, 'docs/components', `${componentName}.md`);
+    const mdPath = path.join(docsDir, 'docs/components', `${componentName}.mdx`);
 
     if (fs.existsSync(mdPath)) {
       try {

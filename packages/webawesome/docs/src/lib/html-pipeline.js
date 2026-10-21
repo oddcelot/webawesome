@@ -1,4 +1,4 @@
-import { parse as HTMLParse } from 'node-html-parser';
+import { parse as HTMLParse, TextNode } from 'node-html-parser';
 import { anchorHeadingsTransformer } from '../../_transformers/anchor-headings.js';
 import { changelogListIconsTransformer } from '../../_transformers/changelog-list-icons.js';
 import { codeExamplesTransformer } from '../../_transformers/code-examples.js';
@@ -26,6 +26,27 @@ const replacements = [
 ];
 
 let componentTagNames;
+
+const BLOCK_TAGS = new Set(
+  'address article aside blockquote dd details div dl dt figcaption figure footer h1 h2 h3 h4 h5 h6 header hr li main nav ol p pre section summary table tbody td tfoot th thead tr ul'.split(
+    ' ',
+  ),
+);
+
+/**
+ * MDX compiles markdown to JSX, which drops the line breaks markdown-it left between block elements (table cells
+ * and rows, list items, paragraphs inside callouts). Layout doesn't care, but text content does: without them the
+ * search index reads "ModeBehavior". Puts a line break between the children of any element in `#content` whose
+ * children are all elements, at least one of them block-level, with no text in between.
+ */
+function restoreBlockWhitespace(doc) {
+  doc.querySelectorAll('#content *').forEach(element => {
+    const children = element.childNodes;
+    if (children.length < 2 || children.some(child => child.nodeType !== 1)) return;
+    if (!children.some(child => BLOCK_TAGS.has(child.rawTagName?.toLowerCase()))) return;
+    element.childNodes = children.flatMap((child, index) => (index ? [new TextNode('\n', element), child] : [child]));
+  });
+}
 
 /**
  * Runs the docs' HTML post-processing on a fully rendered page: heading anchors, outlines, current links,
@@ -67,6 +88,8 @@ export function transformPage(html, url) {
     linkifyComponentsTransformer(componentTagNames),
   ];
 
+  // Before the transformers, so only the rendered content is touched (not the outlines they generate)
+  restoreBlockWhitespace(doc);
   for (const transformer of transformers) {
     transformer.call(context, doc);
   }
