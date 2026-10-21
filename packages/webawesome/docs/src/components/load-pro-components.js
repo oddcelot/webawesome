@@ -6,16 +6,6 @@ function loadLayout() {
 
   const kitCode = 'f4ea8aaaeb9d4f12';
 
-  const define = window.customElements.define.bind(window.customElements);
-  window.customElements.define = function (tagName, ctor, options) {
-    // We may get duplicate registrations from pro components (popover, button, etc) loaded from CDN so ignore duplicate registrations.
-    if (window.customElements.get(tagName)) {
-      return;
-    }
-
-    return define(tagName, ctor, options);
-  };
-
   // This is really hacky and only for running the free repo locally. Its not perfect, but its better than nothing.
   // This will break singletons, and cause things to load twice
   const toLoad = proComponents.filter(tagName => {
@@ -24,6 +14,17 @@ function loadLayout() {
   });
 
   if (toLoad.length > 0) {
+    // The pro bundles re-register shared components (popover, button, etc.), so ignore duplicate registrations while
+    // they load. This is scoped to the load so it doesn't swallow the re-registrations Lit HMR relies on in dev.
+    const registry = window.customElements;
+    const define = registry.define.bind(registry);
+    registry.define = (tagName, ctor, options) => {
+      if (registry.get(tagName)) {
+        return;
+      }
+      return define(tagName, ctor, options);
+    };
+
     // The CDN bundle ships its own copy of Lit. Our local SSR loader installs a
     // global `litElementHydrateSupport` hook that lit-element invokes at module
     // eval time — if it's still present when the CDN bundle evaluates, it patches
@@ -43,6 +44,8 @@ function loadLayout() {
     );
 
     void Promise.allSettled(imports).finally(() => {
+      // Drop the own property so the registry's prototype method shows through again
+      delete registry.define;
       if (savedHydrateSupport) globalThis.litElementHydrateSupport = savedHydrateSupport;
     });
   }

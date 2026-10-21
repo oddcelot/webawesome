@@ -6,7 +6,7 @@ Web Awesome — free/open-source Lit-based web component library (`@awesome.me/w
 
 ```bash
 npm start                  # Vite+ dev server (vp dev) with Lit HMR, serves index.html
-npm run start:docs         # Docs dev server: astro dev on :4000, rebuilds dist-cdn when src/ changes
+npm run start:docs         # Docs dev server: astro dev on :4000, components load from src/ with Lit HMR (--no-open: no browser)
 npm run build              # Production build (scripts/build.js, bundles with Vite+ pack)
 npm test                   # Run all component tests (vp test, Vitest browser mode)
 npm run test:component -- button  # Watch single component tests

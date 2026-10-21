@@ -6,6 +6,7 @@ import { generateDesignSkill } from '../../scripts/design-skill.js';
 import { getCdnDir } from '../../scripts/utils.js';
 import { buildSearchIndex } from '../_plugins/search.js';
 import { devRequestPass } from './dev-request-pass.js';
+import { devSourceMount } from './dev-source.js';
 import { stripSiteTitleSuffix } from './lib/site.js';
 
 const MIME_TYPES = {
@@ -44,7 +45,17 @@ export function docsIntegration() {
     name: 'webawesome-docs',
     hooks: {
       'astro:server:setup': ({ server }) => {
+        const srcDir = fileURLToPath(new URL('../../src', import.meta.url));
+        server.middlewares.use(devSourceMount({ srcDir }));
         serveDist(server);
+        // The library lives outside the Astro root, so Vite doesn't watch it on its own. Linked stylesheets aren't in
+        // the module graph either, so a CSS change reloads the page.
+        server.watcher.add(srcDir);
+        server.watcher.on('change', file => {
+          if (file.startsWith(join(srcDir, 'styles')) && file.endsWith('.css')) {
+            server.ws.send({ type: 'full-reload', path: '*' });
+          }
+        });
         server.middlewares.use(devRequestPass({ distDir: process.env.UNBUNDLED_DIST_DIRECTORY }));
         // scripts/build.js reloads the browser through this after rebuilding the components
         globalThis.webawesomeDocsViteServer = server;

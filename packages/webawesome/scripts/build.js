@@ -1,8 +1,10 @@
-import { execSync } from 'child_process';
+import { exec, execSync } from 'child_process';
 import { mkdir, readFile } from 'fs/promises';
+import * as fs from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import chalk from 'chalk';
 import chokidar from 'chokidar';
 import { deleteAsync } from 'del';
@@ -16,6 +18,7 @@ import { bundleJs, emitDeclarations } from './pack.config.js';
 import { formatError, getCdnDir, getDistDir, getRootDir } from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const execAsync = promisify(exec);
 
 const spinner = ora();
 
@@ -122,21 +125,23 @@ export async function build(options = {}) {
   /**
    * Analyzes components and generates the custom elements manifest file.
    */
-  function generateManifest() {
+  async function generateManifest() {
     spinner.start('Generating CEM');
 
     try {
-      execSync('cem analyze --config "custom-elements-manifest.js"');
+      // Async so it doesn't block the event loop of the docs dev server running in this process
+      await execAsync('cem analyze --config "custom-elements-manifest.js"');
     } catch (error) {
+      spinner.fail();
       console.error(`\n\n${error.message}`);
 
       if (!isDeveloping) {
         process.exit(1);
       }
+      return;
     }
 
     spinner.succeed();
-    return Promise.resolve();
   }
 
   /**
@@ -166,27 +171,27 @@ export async function build(options = {}) {
     return Promise.resolve();
   }
 
-  function generateAllComponentFile() {
+  async function generateAllComponentFile() {
     if (process.env.SKIP_SLOW_STEPS === 'true') {
       spinner.info('Skipping "ssr/all.js" file generation.');
-      return Promise.resolve();
+      return;
     }
 
     spinner.start('Generating "ssr/all.js" file');
 
     try {
       // need to run make-all from this directory.
-      execSync(`node ${join(__dirname, 'make-all.js')} --outdir "${getCdnDir()}"`, { stdio: 'inherit' });
+      await execAsync(`node ${join(__dirname, 'make-all.js')} --outdir "${getCdnDir()}"`);
     } catch (error) {
+      spinner.fail();
       console.error(`\n\n${error.message}`);
 
       if (!isDeveloping) {
         process.exit(1);
       }
+      return;
     }
     spinner.succeed();
-
-    return Promise.resolve();
   }
 
   /**
@@ -265,93 +270,125 @@ export async function build(options = {}) {
   }
 
   /**
-   * Rebuilds the source files in development mode.
+   * The parts of the build the docs dev server needs: the manifest (API tables), the SSR bundle and dist-cdn (served
+   * as `/dist` to SSR pages). Type declarations and React wrappers are left out.
    */
-  const regenerateBundle = generateBundle;
-
-  // Initial build
-  await buildAll();
+  async function buildForDocsDev() {
+    await generateManifest();
+    await generateAllComponentFile();
+    await generateStyles();
+    // copy everything to unbundled before we generate bundles.
+    await copy(getCdnDir(), getDistDir(), { overwrite: true });
+    await generateBundle();
+  }
 
   if (!isDeveloping) {
+    await buildAll();
     console.log(); // just a newline for readability
   }
 
   // Launch the dev server
   if (isDeveloping) {
+    const manifestPath = join(getDistDir(), 'custom-elements.json');
+    const readManifest = () => (fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf-8') : '');
+    const hasPreviousBuild = [
+      manifestPath,
+      join(getDistDir(), 'ssr/render-string.js'),
+      join(getCdnDir(), 'webawesome.ssr-loader.js'),
+    ].every(file => fs.existsSync(file));
+
+    // The docs load the library from source, so a previous build is good enough to start with. Without one (a fresh
+    // checkout, CI), build what the docs need first.
+    if (!hasPreviousBuild) {
+      await buildForDocsDev();
+    }
+
     spinner.start('Launching the dev server');
 
     const port = await getPort({ port: portNumbers(4000, 4999) });
     const devServer = await startDocsDevServer({ port });
     const url = devServer.url;
-    const reload = () => {
-      spinner.start('Reloading browser');
-      devServer.reload();
-      spinner.succeed();
-    };
 
     spinner.succeed();
     console.log(`\nThe dev server is running at ${chalk.cyan(url)}\n`);
-    void open(url);
+    if (!process.argv.includes('--no-open')) {
+      void open(url);
+    }
 
-    // Astro reloads docs changes on its own. Component sources need a rebuild of dist-cdn first.
+    /**
+     * Brings the manifest, SSR bundle and dist-cdn up to date in the background. Component edits already reached the
+     * browser through Vite HMR, so the page only reloads when the manifest changed (the API tables are built from it).
+     */
+    let refreshing = Promise.resolve();
+    let pending = null;
+    const refresh = (changedFiles = []) => {
+      pending ??= new Set();
+      changedFiles.forEach(file => pending.add(file));
+      refreshing = refreshing.then(async () => {
+        if (!pending) return;
+        const files = [...pending];
+        pending = null;
+
+        const start = Date.now();
+        const manifestBefore = readManifest();
+        try {
+          if (typeof options.beforeWatchEvent === 'function') {
+            for (const file of files) await options.beforeWatchEvent('change', file);
+          }
+
+          const onlyStyles = files.length > 0 && files.every(file => file.endsWith('.css'));
+          if (onlyStyles) {
+            await generateStyles();
+          } else {
+            await buildForDocsDev();
+          }
+
+          if (typeof options.afterWatchEvent === 'function') {
+            for (const file of files) await options.afterWatchEvent('change', file);
+          }
+
+          const changedApi = readManifest() !== manifestBefore;
+          spinner.info(
+            `Updated dist in the background ${chalk.gray(`(${(Date.now() - start) / 1000}s${changedApi ? ', component API changed' : ''})`)}`,
+          );
+          if (changedApi) {
+            devServer.reload();
+          }
+        } catch (err) {
+          console.error(chalk.red(formatError(err)));
+        }
+      });
+      return refreshing;
+    };
+
+    if (hasPreviousBuild) {
+      spinner.info('Refreshing dist in the background');
+      void refresh();
+    }
+
+    let debounce;
     const watchEvents = ['change', 'unlink', 'add'];
     options.watchedSrcDirectories.forEach(dir => {
-      const watcher = chokidar.watch(join(dir, '**', '*.*'), { ignoreInitial: true, ignored: /\.test\.[^/]*$/ });
+      // src/ssr/all.ts is generated by the refresh itself
+      const watcher = chokidar.watch(join(dir, '**', '*.*'), {
+        ignoreInitial: true,
+        ignored: file => /\.test\.[^/]*$/.test(file) || file.endsWith(join('ssr', 'all.ts')),
+      });
 
       watchEvents.forEach(evt => {
-        watcher.on(evt, handleWatchEvent(evt));
-      });
-      function handleWatchEvent(evt) {
-        return async filename => {
+        watcher.on(evt, filename => {
           const changedFile = relative(getRootDir(), filename);
+          spinner.info(
+            `${{ change: 'File modified', unlink: 'File deleted', add: 'File added' }[evt]} ${chalk.gray(`(${changedFile})`)}`,
+          );
 
-          if (evt === 'change') {
-            spinner.info(`File modified ${chalk.gray(`(${changedFile})`)}`);
-          } else if (evt === 'unlink') {
-            spinner.info(`File deleted ${chalk.gray(`(${changedFile})`)}`);
-          } else if (evt === 'add') {
-            spinner.info(`File added ${chalk.gray(`(${changedFile})`)}`);
-          }
-
-          try {
-            const isTestFile = filename.includes('.test.ts');
-            const isCssStylesheet = filename.includes('.css');
-            const isComponent =
-              filename.includes('components/') && filename.includes('.ts') && !isCssStylesheet && !isTestFile;
-
-            if (isTestFile) {
-              return;
-            }
-
-            if (typeof options.beforeWatchEvent === 'function') {
-              await options.beforeWatchEvent(evt, filename);
-            }
-
-            // Copy stylesheets when CSS files change
-            if (isCssStylesheet) {
-              await generateStyles();
-            }
-
-            // Regenerate metadata when components change
-            if (isComponent) {
-              await generateManifest();
-            }
-
-            // copy everything to unbundled before we generate bundles.
-            // this may cause watcher events to break. if things are broken with file watching, comment this out.
-            await copy(getCdnDir(), getDistDir(), { overwrite: true });
-            await regenerateBundle();
-
-            if (typeof options.afterWatchEvent === 'function') {
-              await options.afterWatchEvent(evt, filename);
-            }
-
-            reload();
-          } catch (err) {
-            console.error(chalk.red(formatError(err)));
-          }
-        };
-      }
+          // Batch quick successive saves into one background rebuild
+          pending ??= new Set();
+          pending.add(filename);
+          clearTimeout(debounce);
+          debounce = setTimeout(() => void refresh(), 300);
+        });
+      });
     });
   }
 

@@ -39,6 +39,10 @@ function parseCookies(header = '') {
  */
 export function devRequestPass({ distDir }) {
   return (req, res, next) => {
+    // Only page loads; modules and assets stream through untouched
+    const isDocument = req.headers['sec-fetch-dest'] === 'document' || /text\/html/.test(req.headers.accept ?? '');
+    if (req.method !== 'GET' || !isDocument) return next();
+
     const url = new URL(req.url || '/', 'http://localhost');
     const cookies = parseCookies(req.headers.cookie);
     const ssrParam = url.searchParams.get('ssr');

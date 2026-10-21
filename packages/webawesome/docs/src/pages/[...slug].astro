@@ -10,7 +10,9 @@ export async function getStaticPaths() {
     .map(page => ({ params: { slug: page.url.replace(/^\/|\/$/g, '') || undefined }, props: { page } }));
 }
 
-const { page } = Astro.props;
+// Astro dev caches getStaticPaths() results, but the component manifest behind page.data.component changes while it
+// runs, so look the page up again on every request
+const page = import.meta.env.DEV ? (await getPages()).find(entry => entry.id === Astro.props.page.id) : Astro.props.page;
 const { Content } = await render(page.entry);
 ---
 
