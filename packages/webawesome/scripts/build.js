@@ -2,19 +2,17 @@ import { execSync } from 'child_process';
 import { mkdir, readFile } from 'fs/promises';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { dirname, extname, join, posix, relative } from 'node:path';
+import { dirname, join, posix, relative } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import browserSync from 'browser-sync';
 import chalk from 'chalk';
-// @ts-expect-error used for SSR cookies
-import cookieParser from 'cookie-parser';
 import { deleteAsync } from 'del';
 import getPort, { portNumbers } from 'get-port';
 import open from 'open';
 import ora from 'ora';
 import copy from 'recursive-copy';
 import { SimulateWebAwesomeApp } from '../docs/_utils/simulate-webawesome-app.js';
+import { startDevServer } from './dev-server.js';
 import { generateDocs } from './docs.js';
 import { generateLlmsTxtFile } from './llms.js';
 import { bundleJs } from './pack.config.js';
@@ -292,122 +290,46 @@ export async function build(options = {}) {
   if (isDeveloping) {
     spinner.start('Launching the dev server');
 
-    const bs = browserSync.create();
     const port = await getPort({ port: portNumbers(4000, 4999) });
-    const url = `http://localhost:${port}/`;
-    const reload = () => {
-      spinner.start('Reloading browser');
-      bs.reload();
-      spinner.succeed();
-    };
 
     await initLitSsr();
 
-    // Launch browser sync
-    bs.init(
-      {
-        open: false,
-        startPath: '/',
-        port,
-        logLevel: 'silent',
-        logPrefix: '[webawesome]',
-        logFileChanges: true,
-        notify: false,
-        single: false,
-        ghostMode: false,
-        server: {
-          baseDir: getSiteDir(),
-          routes: {
-            '/dist/': './dist-cdn/',
-          },
-        },
-        middleware: [
-          cookieParser(),
-          function simulateWebawesomeApp(req, res, next) {
-            // Accumulator for strings so we can pass them through nunjucks a second time similar to how the webawesome-app
+    const devServer = await startDevServer({
+      port,
+      siteDir: getSiteDir(),
+      cdnDir: getCdnDir(),
+      // A second nunjucks pass (simulating the webawesome-app), then optional SSR
+      transformHtml: (html, req) => {
+        const ssr = req?.query?.ssr || req?.cookies?.webawesome_ssr === 'true';
+        let transformedStr = SimulateWebAwesomeApp(html, {
+          isDev: process.env.NODE_ENV === 'development',
+          NODE_ENV: process.env.NODE_ENV,
+          ssr,
+          req,
+        });
 
-            if (!next) {
-              return;
-            }
+        if (ssr) {
+          transformedStr = litRenderString(transformedStr);
+        }
 
-            if (!req.url) {
-              next();
-              return;
-            }
-
-            const extension = extname(req.url);
-            if (extension !== '' && extension !== '.html') {
-              // Assume its something like .svg / .png / .css etc. that we don't want to transform.
-              next();
-              return;
-            }
-
-            // will be running nunjucks twice.
-            const finalString = [];
-            const encoding = 'utf-8';
-
-            const _write = res.write;
-
-            res.write = function (chunk, encoding) {
-              // Buffer chunks into an array so that we do a single transform.
-              finalString.push(chunk.toString());
-            };
-
-            const _end = res.end;
-            res.end = function (...args) {
-              const ssr = req?.query?.ssr || req?.cookies?.webawesome_ssr === 'true';
-
-              let transformedStr = SimulateWebAwesomeApp(finalString.join(''), {
-                isDev: process.env.NODE_ENV === 'development',
-                NODE_ENV: process.env.NODE_ENV,
-                ssr,
-                req,
-              });
-
-              if (ssr) {
-                transformedStr = litRenderString(transformedStr);
-              }
-
-              _write.call(res, transformedStr, encoding);
-              _end.call(res, ...args);
-            };
-
-            next();
-          },
-        ],
-        callbacks: {
-          ready: (_err, instance) => {
-            // 404 errors
-            instance.addMiddleware('*', async (req, res) => {
-              if (req.url.toLowerCase().endsWith('.svg')) {
-                // Make sure SVGs error out in dev instead of serve the 404 page
-                res.writeHead(404);
-              } else {
-                try {
-                  const notFoundTemplate = await readFile(join(getSiteDir(), '404.html'), 'utf-8');
-                  res.writeHead(404);
-                  res.write(notFoundTemplate || 'Page Not Found');
-                } catch {
-                  // We're probably disconnected for some reason, so fail gracefully
-                }
-              }
-
-              res.end();
-            });
-          },
-        },
+        return transformedStr;
       },
-      () => {
-        spinner.succeed();
-        console.log(`\nThe dev server is running at ${chalk.cyan(url)}\n`);
-        open(url);
-      },
-    );
+    });
+    const url = devServer.url;
+    const reload = () => {
+      spinner.start('Reloading browser');
+      devServer.reload();
+      spinner.succeed();
+    };
+
+    spinner.succeed();
+    console.log(`\nThe dev server is running at ${chalk.cyan(url)}\n`);
+    open(url);
 
     const watchEvents = ['change', 'unlink', 'add'];
     // Rebuild and reload when source files change
     options.watchedSrcDirectories.forEach(dir => {
-      const watcher = bs.watch(join(dir, '**', '!(*.test).*'), { ignoreInitial: true });
+      const watcher = devServer.watch(join(dir, '**', '*.*'), { ignored: /\.test\.[^/]*$/ });
 
       watchEvents.forEach(evt => {
         watcher.on(evt, handleWatchEvent(evt));
@@ -476,7 +398,7 @@ export async function build(options = {}) {
 
     // Rebuild the docs and reload when the docs change
     options.watchedDocsDirectories.forEach(dir => {
-      const watcher = bs.watch(join(dir, '**', '*.*'), { ignoreInitial: true });
+      const watcher = devServer.watch(join(dir, '**', '*.*'));
 
       watchEvents.forEach(evt => {
         watcher.on(evt, handleWatchEvent(evt));

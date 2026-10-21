@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: ['24']
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -25,6 +25,7 @@ jobs:
         uses: voidzero-dev/setup-vp@v1.21.2
         with:
           node-version: ${{ matrix.node-version }}
+          version-file: packages/webawesome/package.json
           cache: true
 
       - name: Build

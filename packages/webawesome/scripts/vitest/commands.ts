@@ -44,15 +44,15 @@ async function toPagePoint(ctx: Context, [x, y]: [number, number]) {
   };
 }
 
-/** Make sure keyboard events go to the test iframe's document (the page may have focus on the orchestrator). */
+/**
+ * Make sure keyboard events go to the test iframe's document. `el.focus()` inside the iframe only sets its activeElement;
+ * the keystrokes still go to whichever frame the page considers focused, and with several workers sharing the browser
+ * that can silently be the orchestrator (dropping the keys).
+ */
 async function focusTestFrame(ctx: Context) {
   const frame = await ctx.frame();
   await frame.evaluate(() => {
-    if (
-      !document.activeElement ||
-      document.activeElement.ownerDocument !== document ||
-      document.activeElement === document.body
-    ) {
+    if (!document.hasFocus()) {
       window.focus();
     }
   });
@@ -117,8 +117,11 @@ export const commands = {
       await ctx.page.mouse.up({ button });
     }
     pressed?.clear();
-    const origin = await toPagePoint(ctx, [0, 0]);
-    await ctx.page.mouse.move(origin.x, origin.y);
+    // Park the pointer in the bottom-right corner. Fixtures render at the top-left, so parking at the origin let them
+    // appear under the pointer (hovering them). Parking outside the page (-1, -1) avoided that, but in Firefox the next
+    // move back in did not reliably reach hover listeners.
+    const viewport = ctx.page.viewportSize() ?? { width: 800, height: 600 };
+    await ctx.page.mouse.move(viewport.width - 1, viewport.height - 1);
   },
 
   async emulateMedia(ctx: Context, options: Parameters<Page['emulateMedia']>[0]): Promise<void> {
