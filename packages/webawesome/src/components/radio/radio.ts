@@ -123,13 +123,15 @@ export default class WaRadio extends WebAwesomeFormAssociatedElement {
   render() {
     return html`
       <span part="control" class="control">
-        ${this.checked
-          ? html`
-              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" part="checked-icon" class="checked-icon">
-                <circle cx="8" cy="8" r="8" />
-              </svg>
-            `
-          : ''}
+        ${
+          this.checked
+            ? html`
+                <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" part="checked-icon" class="checked-icon">
+                  <circle cx="8" cy="8" r="8" />
+                </svg>
+              `
+            : ''
+        }
       </span>
 
       <slot part="label" class="label"></slot>

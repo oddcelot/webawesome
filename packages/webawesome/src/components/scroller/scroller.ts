@@ -116,12 +116,14 @@ export default class WaScroller extends WebAwesomeElement {
 
   render() {
     return html`
-      ${this.withoutShadow
-        ? ''
-        : html`
-            <div id="start-shadow" part="start-shadow" aria-hidden="true"></div>
-            <div id="end-shadow" part="end-shadow" aria-hidden="true"></div>
-          `}
+      ${
+        this.withoutShadow
+          ? ''
+          : html`
+              <div id="start-shadow" part="start-shadow" aria-hidden="true"></div>
+              <div id="end-shadow" part="end-shadow" aria-hidden="true"></div>
+            `
+      }
 
       <div
         id="content"

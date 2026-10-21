@@ -241,16 +241,18 @@ export default class WaOption extends WebAwesomeElement {
     }
 
     return html`
-      ${selected
-        ? html`<wa-icon
-            part="checked-icon"
-            class="check"
-            name="check"
-            library="system"
-            variant="solid"
-            aria-hidden="true"
-          ></wa-icon>`
-        : html`<span part="checked-icon" class="check" aria-hidden="true"></span>`}
+      ${
+        selected
+          ? html`<wa-icon
+              part="checked-icon"
+              class="check"
+              name="check"
+              library="system"
+              variant="solid"
+              aria-hidden="true"
+            ></wa-icon>`
+          : html`<span part="checked-icon" class="check" aria-hidden="true"></span>`
+      }
       <slot part="start" name="start" class="start"></slot>
       <slot part="label" class="label" @slotchange=${this.handleDefaultSlotChange}></slot>
       <slot part="end" name="end" class="end"></slot>

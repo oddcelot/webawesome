@@ -33,25 +33,25 @@ Components are built with [Lit](https://lit.dev/), a custom elements base class 
 
 ### Understanding the Web Awesome monorepo
 
-Web Awesome uses [npm workspaces](https://docs.npmjs.com/cli/v11/using-npm/workspaces) for its monorepo structure and is fairly minimal in what it provides.
+Web Awesome uses [pnpm workspaces](https://pnpm.io/workspaces) and the [Vite+](https://viteplus.dev/) toolchain (`vp`) for its monorepo structure and is fairly minimal in what it provides.
 
-By using npm workspaces and a monorepo structure, we can get consistent builds, shared configurations, and reduced duplication across repositories which reduces regressions and forces consistency across `webawesome`, `webawesome-pro`, and `webawesome-app`.
+By using workspaces and a monorepo structure, we can get consistent builds, shared configurations, and reduced duplication across repositories which reduces regressions and forces consistency across `webawesome`, `webawesome-pro`, and `webawesome-app`.
 
 Generally, if you plan to only work with the free version of `webawesome` it is easiest to go to `packages/webawesome` and run all commands from there.
 
 ### Where do npm dependencies go?
 
-Any dependencies intended to be used across all packages (i.e., `prettier`, `eslint`) that are **not** used at runtime should be in the root `devDependencies` of `package.json`.
+Any dependencies intended to be used across all packages (i.e., `vite-plus`, `typescript`) that are **not** used at runtime should be in the root `devDependencies` of `package.json`.
 
 ```bash
-npm install -D -w prettier
+pnpm add -D -w <package-name>
 ```
 
-Any dependencies that will be used at runtime by a package should be part of the specific package's `dependencies` such as `lit`. This is required because if that dependency is not in the `packages/*/package.json`, it will not be installed when used via npm.
+Any dependencies that will be used at runtime by a package should be part of the specific package's `dependencies` such as `lit`. This is required because if that dependency is not in the `packages/*/package.json`, it will not be installed for consumers of the package.
 
 Individual packages are also free to install `devDependencies` as needed as long as they are specific to that package only.
 
-To install a package specific to a Web Awesome package, change your working directory to that package's root (i.e., `cd packages/webawesome && npm install <package-name>`).
+To install a package specific to a Web Awesome package, change your working directory to that package's root (i.e., `cd packages/webawesome && pnpm add <package-name>`).
 
 ### Forking the Repo
 
@@ -60,7 +60,7 @@ Start by [forking the repo](https://github.com/shoelace-style/webawesome/fork) o
 ```bash
 git clone https://github.com/YOUR_GITHUB_USERNAME/webawesome
 cd webawesome
-npm install
+pnpm install
 ```
 
 ### Developing
@@ -72,7 +72,9 @@ cd packages/webawesome
 npm start
 ```
 
-This will spin up the dev server. After the initial build, a browser will open automatically. There is currently no hot module reloading (HMR), as browsers don't provide a way to reregister custom elements, but most changes to the source will reload the browser automatically.
+This starts the Vite+ dev server (`vp dev`) for `index.html`, with hot module replacement for Lit components via `@oddsquad/vite-plugin-lit`.
+
+To work on the docs site instead, run `npm run start:docs`. After the initial build, a browser will open automatically and most changes to the source will reload it.
 
 ### Building
 

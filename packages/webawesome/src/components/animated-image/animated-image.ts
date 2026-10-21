@@ -140,32 +140,34 @@ export default class WaAnimatedImage extends WebAwesomeElement {
           @error=${this.handleError}
         />
 
-        ${this.isLoaded
-          ? html`
-              <img
-                class="frozen"
-                src=${this.frozenFrame}
-                alt=${this.alt}
-                aria-hidden=${this.play ? 'true' : 'false'}
-                role="presentation"
-              />
+        ${
+          this.isLoaded
+            ? html`
+                <img
+                  class="frozen"
+                  src=${this.frozenFrame}
+                  alt=${this.alt}
+                  aria-hidden=${this.play ? 'true' : 'false'}
+                  role="presentation"
+                />
 
-              <div part="control-box" class="control-box" aria-hidden="true">
-                <slot name="play-icon">
-                  <wa-icon
-                    name="play"
-                    library="system"
-                    variant="solid"
-                    class="default"
-                    style=${styleMap({ 'margin-inline-start': '3px' })}
-                  ></wa-icon>
-                </slot>
-                <slot name="pause-icon">
-                  <wa-icon name="pause" library="system" variant="solid" class="default"></wa-icon>
-                </slot>
-              </div>
-            `
-          : ''}
+                <div part="control-box" class="control-box" aria-hidden="true">
+                  <slot name="play-icon">
+                    <wa-icon
+                      name="play"
+                      library="system"
+                      variant="solid"
+                      class="default"
+                      style=${styleMap({ 'margin-inline-start': '3px' })}
+                    ></wa-icon>
+                  </slot>
+                  <slot name="pause-icon">
+                    <wa-icon name="pause" library="system" variant="solid" class="default"></wa-icon>
+                  </slot>
+                </div>
+              `
+            : ''
+        }
       </div>
     `;
   }

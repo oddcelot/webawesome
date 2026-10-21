@@ -332,24 +332,26 @@ export default class WaNumberInput extends WebAwesomeFormAssociatedElement {
       </label>
 
       <div part="base number-input" class="number-field">
-        ${!this.withoutSteppers
-          ? html`
-              <button
-                part="stepper stepper-decrement"
-                class="stepper stepper-decrement"
-                type="button"
-                tabindex="-1"
-                aria-label=${this.localize.term('decrement')}
-                ?disabled=${this.disabled || this.readonly || this.isAtMin}
-                @pointerdown=${this.handleStepperPointerDown}
-                @pointerup=${(event: PointerEvent) => this.handleStepperPointerUp('down', event)}
-              >
-                <slot name="decrement-icon">
-                  <wa-icon name="minus" library="system"></wa-icon>
-                </slot>
-              </button>
-            `
-          : ''}
+        ${
+          !this.withoutSteppers
+            ? html`
+                <button
+                  part="stepper stepper-decrement"
+                  class="stepper stepper-decrement"
+                  type="button"
+                  tabindex="-1"
+                  aria-label=${this.localize.term('decrement')}
+                  ?disabled=${this.disabled || this.readonly || this.isAtMin}
+                  @pointerdown=${this.handleStepperPointerDown}
+                  @pointerup=${(event: PointerEvent) => this.handleStepperPointerUp('down', event)}
+                >
+                  <slot name="decrement-icon">
+                    <wa-icon name="minus" library="system"></wa-icon>
+                  </slot>
+                </button>
+              `
+            : ''
+        }
 
         <slot name="start" part="start" class="start"></slot>
 
@@ -380,24 +382,26 @@ export default class WaNumberInput extends WebAwesomeFormAssociatedElement {
 
         <slot name="end" part="end" class="end"></slot>
 
-        ${!this.withoutSteppers
-          ? html`
-              <button
-                part="stepper stepper-increment"
-                class="stepper stepper-increment"
-                type="button"
-                tabindex="-1"
-                aria-label=${this.localize.term('increment')}
-                ?disabled=${this.disabled || this.readonly || this.isAtMax}
-                @pointerdown=${this.handleStepperPointerDown}
-                @pointerup=${(event: PointerEvent) => this.handleStepperPointerUp('up', event)}
-              >
-                <slot name="increment-icon">
-                  <wa-icon name="plus" library="system"></wa-icon>
-                </slot>
-              </button>
-            `
-          : ''}
+        ${
+          !this.withoutSteppers
+            ? html`
+                <button
+                  part="stepper stepper-increment"
+                  class="stepper stepper-increment"
+                  type="button"
+                  tabindex="-1"
+                  aria-label=${this.localize.term('increment')}
+                  ?disabled=${this.disabled || this.readonly || this.isAtMax}
+                  @pointerdown=${this.handleStepperPointerDown}
+                  @pointerup=${(event: PointerEvent) => this.handleStepperPointerUp('up', event)}
+                >
+                  <slot name="increment-icon">
+                    <wa-icon name="plus" library="system"></wa-icon>
+                  </slot>
+                </button>
+              `
+            : ''
+        }
       </div>
 
       <slot

@@ -47,10 +47,10 @@ dist-cdn/skills/webawesome-design/     ← GENERATED, do not edit
    npm run build
    ```
 
-3. Run Prettier so source and dist stay byte-identical and formatted:
+3. Run the Vite+ formatter so source and dist stay byte-identical and formatted:
 
    ```bash
-   npx prettier --write 'scripts/design-skill/**/*.md'
+   npx vp fmt scripts/design-skill
    ```
 
 4. Run the skill verifier (catches drift between hand-authored content and the actual library):

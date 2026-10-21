@@ -481,26 +481,30 @@ export default class WaPagination extends WebAwesomeElement {
         ${this.renderSummary()}
         <nav part="base pagination" class="pagination" aria-label=${this.label || this.localize.term('pagination')}>
           <ul part="pages" class="pages" role="list">
-            ${this.withEdges
-              ? this.renderNavButton({
-                  part: 'first-button',
-                  targetPage: 1,
-                  enabled: !onFirstPage,
-                  label: this.localize.term('firstPage'),
-                  icon: isRtl ? 'angles-right' : 'angles-left',
-                  slotName: 'first-icon',
-                })
-              : ''}
-            ${this.withoutNav
-              ? ''
-              : this.renderNavButton({
-                  part: 'previous-button',
-                  targetPage: this.page - 1,
-                  enabled: !onFirstPage,
-                  label: this.localize.term('previousPage'),
-                  icon: isRtl ? 'chevron-right' : 'chevron-left',
-                  slotName: 'previous-icon',
-                })}
+            ${
+              this.withEdges
+                ? this.renderNavButton({
+                    part: 'first-button',
+                    targetPage: 1,
+                    enabled: !onFirstPage,
+                    label: this.localize.term('firstPage'),
+                    icon: isRtl ? 'angles-right' : 'angles-left',
+                    slotName: 'first-icon',
+                  })
+                : ''
+            }
+            ${
+              this.withoutNav
+                ? ''
+                : this.renderNavButton({
+                    part: 'previous-button',
+                    targetPage: this.page - 1,
+                    enabled: !onFirstPage,
+                    label: this.localize.term('previousPage'),
+                    icon: isRtl ? 'chevron-right' : 'chevron-left',
+                    slotName: 'previous-icon',
+                  })
+            }
             ${items.map(item => {
               if (item.type === 'ellipsis') {
                 ellipsisCount++;
@@ -508,26 +512,30 @@ export default class WaPagination extends WebAwesomeElement {
               }
               return this.renderPage(item.value);
             })}
-            ${this.withoutNav
-              ? ''
-              : this.renderNavButton({
-                  part: 'next-button',
-                  targetPage: this.page + 1,
-                  enabled: !onLastPage,
-                  label: this.localize.term('nextPage'),
-                  icon: isRtl ? 'chevron-left' : 'chevron-right',
-                  slotName: 'next-icon',
-                })}
-            ${this.withEdges
-              ? this.renderNavButton({
-                  part: 'last-button',
-                  targetPage: totalPages,
-                  enabled: !onLastPage,
-                  label: this.localize.term('lastPage'),
-                  icon: isRtl ? 'angles-left' : 'angles-right',
-                  slotName: 'last-icon',
-                })
-              : ''}
+            ${
+              this.withoutNav
+                ? ''
+                : this.renderNavButton({
+                    part: 'next-button',
+                    targetPage: this.page + 1,
+                    enabled: !onLastPage,
+                    label: this.localize.term('nextPage'),
+                    icon: isRtl ? 'chevron-left' : 'chevron-right',
+                    slotName: 'next-icon',
+                  })
+            }
+            ${
+              this.withEdges
+                ? this.renderNavButton({
+                    part: 'last-button',
+                    targetPage: totalPages,
+                    enabled: !onLastPage,
+                    label: this.localize.term('lastPage'),
+                    icon: isRtl ? 'angles-left' : 'angles-right',
+                    slotName: 'last-icon',
+                  })
+                : ''
+            }
           </ul>
         </nav>
       </div>

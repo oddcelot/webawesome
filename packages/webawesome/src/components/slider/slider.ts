@@ -927,9 +927,11 @@ export default class WaSlider extends WebAwesomeFormAssociatedElement {
               role="slider"
               aria-valuemin=${this.min}
               aria-valuenow=${this.minValue}
-              aria-valuetext=${typeof this.valueFormatter === 'function'
-                ? this.valueFormatter(this.minValue)
-                : this.localize.number(this.minValue)}
+              aria-valuetext=${
+                typeof this.valueFormatter === 'function'
+                  ? this.valueFormatter(this.minValue)
+                  : this.localize.number(this.minValue)
+              }
               aria-valuemax=${this.max}
               aria-label="${this.label ? `${this.label} (minimum value)` : 'Minimum value'}"
               aria-orientation=${this.orientation}
@@ -948,9 +950,11 @@ export default class WaSlider extends WebAwesomeFormAssociatedElement {
               role="slider"
               aria-valuemin=${this.min}
               aria-valuenow=${this.maxValue}
-              aria-valuetext=${typeof this.valueFormatter === 'function'
-                ? this.valueFormatter(this.maxValue)
-                : this.localize.number(this.maxValue)}
+              aria-valuetext=${
+                typeof this.valueFormatter === 'function'
+                  ? this.valueFormatter(this.maxValue)
+                  : this.localize.number(this.maxValue)
+              }
               aria-valuemax=${this.max}
               aria-label="${this.label ? `${this.label} (maximum value)` : 'Maximum value'}"
               aria-orientation=${this.orientation}
@@ -990,9 +994,11 @@ export default class WaSlider extends WebAwesomeFormAssociatedElement {
           aria-orientation=${this.orientation}
           aria-valuemin=${this.min}
           aria-valuenow=${this.value}
-          aria-valuetext=${typeof this.valueFormatter === 'function'
-            ? this.valueFormatter(this.value)
-            : this.localize.number(this.value)}
+          aria-valuetext=${
+            typeof this.valueFormatter === 'function'
+              ? this.valueFormatter(this.value)
+              : this.localize.number(this.value)
+          }
           aria-valuemax=${this.max}
           aria-labelledby="label"
           aria-describedby="hint"

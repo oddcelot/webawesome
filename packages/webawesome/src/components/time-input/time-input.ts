@@ -1018,21 +1018,23 @@ export default class WaTimeInput extends WebAwesomeFormAssociatedElement {
                 autocomplete=${ifDefined(this.autocomplete || undefined)}
               />
 
-              ${this.withClear && hasValue
-                ? html`<button
-                    part="clear-button"
-                    type="button"
-                    class="clear-button"
-                    aria-label=${this.localize.term('clearEntry')}
-                    tabindex="-1"
-                    @mousedown=${this.handleClearMouseDown}
-                    @click=${this.handleClearClick}
-                  >
-                    <slot name="clear-icon">
-                      <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
-                    </slot>
-                  </button>`
-                : nothing}
+              ${
+                this.withClear && hasValue
+                  ? html`<button
+                      part="clear-button"
+                      type="button"
+                      class="clear-button"
+                      aria-label=${this.localize.term('clearEntry')}
+                      tabindex="-1"
+                      @mousedown=${this.handleClearMouseDown}
+                      @click=${this.handleClearClick}
+                    >
+                      <slot name="clear-icon">
+                        <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
+                      </slot>
+                    </button>`
+                  : nothing
+              }
 
               <slot name="end" part="end" class="end"></slot>
 
@@ -1040,9 +1042,9 @@ export default class WaTimeInput extends WebAwesomeFormAssociatedElement {
                 part="expand-button"
                 type="button"
                 class="expand-button"
-                aria-label=${this.open
-                  ? this.term('closeTimeInput', 'Close time picker')
-                  : this.term('chooseTime', 'Choose time')}
+                aria-label=${
+                  this.open ? this.term('closeTimeInput', 'Close time picker') : this.term('chooseTime', 'Choose time')
+                }
                 aria-haspopup="dialog"
                 aria-expanded=${this.open ? 'true' : 'false'}
                 aria-controls=${this.popupId}
@@ -1064,15 +1066,17 @@ export default class WaTimeInput extends WebAwesomeFormAssociatedElement {
               aria-label=${this.term('chooseTime', 'Choose time')}
             >
               <div part="columns" class="columns">${this.columnFields.map(f => this.renderColumn(f))}</div>
-              ${hasFooterSlot
-                ? html`<div class="popup-footer"><slot name="footer"></slot></div>`
-                : this.withNow
-                  ? html`<div class="popup-footer">
-                      <button part="now-button" type="button" class="now-button" @click=${this.handleNowClick}>
-                        ${this.term('now', 'Now')}
-                      </button>
-                    </div>`
-                  : nothing}
+              ${
+                hasFooterSlot
+                  ? html`<div class="popup-footer"><slot name="footer"></slot></div>`
+                  : this.withNow
+                    ? html`<div class="popup-footer">
+                        <button part="now-button" type="button" class="now-button" @click=${this.handleNowClick}>
+                          ${this.term('now', 'Now')}
+                        </button>
+                      </div>`
+                    : nothing
+              }
             </div>
           </wa-popup>
         </div>

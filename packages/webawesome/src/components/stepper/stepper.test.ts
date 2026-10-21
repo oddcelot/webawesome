@@ -1,6 +1,6 @@
 import { aTimeout, expect, html, waitUntil } from '@open-wc/testing';
-import { sendKeys } from '@web/test-runner-commands';
 import sinon from 'sinon';
+import { sendKeys } from '../../internal/test/commands.js';
 import { fixtures } from '../../internal/test/fixture.js';
 import type WaStep from '../step/step.js';
 import type WaStepper from './stepper.js';
@@ -624,8 +624,8 @@ describe('<wa-stepper>', () => {
             `),
           );
 
-          const buttons = getSteps(el).map(
-            step => step.shadowRoot!.querySelector<HTMLButtonElement>('[part~="button"]')!,
+          const buttons = getSteps(el).map(step =>
+            step.shadowRoot!.querySelector<HTMLButtonElement>('[part~="button"]')!,
           );
           expect(buttons.every(button => button?.localName === 'button')).to.be.true;
           expect(buttons[0].disabled).to.be.false;

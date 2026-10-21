@@ -1,19 +1,20 @@
 // TODO: Write logic around custom element definitions, no defs, conflicting defs, same defs, etc.
 import { expect } from '@open-wc/testing';
-import { readFile } from '@web/test-runner-commands';
-
 import WaButton from '../../dist-cdn/components/button/button.js';
+import { readFile } from './test/commands.js';
 
 // We don't use WebAwesomeElement directly because it shouldn't exist in the final bundle.
 // @ts-ignore intentionally unused — verifies prototype chain exists in the bundle
 const WebAwesomeElement = Object.getPrototypeOf(WaButton);
 
+import Sinon from 'sinon';
 // @ts-expect-error Isn't written in TS.
 import { getAllComponents } from '../../scripts/shared.js';
 
-import Sinon from 'sinon';
-
-const getMetadata = () => readFile({ path: '../../dist/custom-elements.json' }) as unknown as Promise<string>;
+const getMetadata = () =>
+  readFile({
+    path: '../../dist/custom-elements.json',
+  }) as unknown as Promise<string>;
 
 let counter = 0;
 
@@ -46,32 +47,30 @@ beforeEach(() => {
 });
 
 // This looks funky here. This grabs all of our components and tests for side effects.
-// We "abuse" mocha and dynamically define tests.
-before(async () => {
-  const metadata = JSON.parse(await getMetadata()) as Record<string, unknown>;
+// Vitest collects tests synchronously, so the metadata is read with top-level await and the tests are defined dynamically.
+const metadata = JSON.parse(await getMetadata()) as Record<string, unknown>;
 
-  const tagNames: string[] = [];
+const tagNames: string[] = [];
 
-  const relevantMetadata: { tagName: string; path: string }[] = getAllComponents(metadata).map(
-    (component: { tagName: string; path: string }) => {
-      const { tagName, path } = component;
-      tagNames.push(tagName);
+const relevantMetadata: { tagName: string; path: string }[] = getAllComponents(metadata).map(
+  (component: { tagName: string; path: string }) => {
+    const { tagName, path } = component;
+    tagNames.push(tagName);
 
-      return { tagName, path };
-    },
-  );
+    return { tagName, path };
+  },
+);
 
-  relevantMetadata.forEach(({ tagName, path }) => {
-    it(`Should not register any components: ${tagName}`, async () => {
-      await import('../../dist-cdn/' + path);
+relevantMetadata.forEach(({ tagName, path }) => {
+  it(`Should not register any components: ${tagName}`, async () => {
+    await import('../../dist-cdn/' + path);
 
-      // Need to make sure we remove the current tag from the tagNames and *then* see whats been registered.
-      const registeredTags = tagNames.filter(tag => tag !== tagName && Boolean(window.customElements.get(tag)));
+    // Need to make sure we remove the current tag from the tagNames and *then* see whats been registered.
+    const registeredTags = tagNames.filter(tag => tag !== tagName && Boolean(window.customElements.get(tag)));
 
-      const errorMessage =
-        `Expected ${path} to not register any tags, but it registered the following tags: ` +
-        registeredTags.map(tag => tag).join(', ');
-      expect(registeredTags.length).to.equal(0, errorMessage);
-    });
+    const errorMessage =
+      `Expected ${path} to not register any tags, but it registered the following tags: ` +
+      registeredTags.map(tag => tag).join(', ');
+    expect(registeredTags.length).to.equal(0, errorMessage);
   });
 });

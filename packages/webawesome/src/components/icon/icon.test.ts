@@ -1,11 +1,10 @@
 import { aTimeout, elementUpdated, expect, oneEvent, waitUntil } from '@open-wc/testing';
-import { emulateMedia } from '@web/test-runner-commands';
 import { html } from 'lit';
-import { expectEvent } from '../../internal/test/expect-event.js';
-import { fixtures } from '../../internal/test/fixture.js';
-
 // Make sure this is `dist-cdn/` otherwise you will get an error.
 import { registerIconLibrary } from '../../../dist-cdn/webawesome.js';
+import { emulateMedia } from '../../internal/test/commands.js';
+import { expectEvent } from '../../internal/test/expect-event.js';
+import { fixtures } from '../../internal/test/fixture.js';
 import type WaIcon from './icon.js';
 import type { IconAnimation } from './icon.js';
 import defaultLibrary, { getIconFolder } from './library.default.js';
@@ -37,7 +36,7 @@ const strokeIcon = `
 `;
 
 describe('<wa-icon>', () => {
-  before(() => {
+  beforeAll(() => {
     registerIconLibrary('test-library', {
       resolver: (name: keyof typeof testLibraryIcons) => {
         // only for testing a bad request

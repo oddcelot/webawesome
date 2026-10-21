@@ -1,9 +1,7 @@
-import commandLineArgs from 'command-line-args';
-import { deleteSync } from 'del';
 import fs from 'fs';
 import path from 'path';
-import prettier from 'prettier';
-import { default as prettierConfig } from '../../../prettier.config.js';
+import commandLineArgs from 'command-line-args';
+import { deleteSync } from 'del';
 import { getAllComponents } from './shared.js';
 
 const { outdir } = commandLineArgs({ name: 'outdir', type: String });
@@ -47,8 +45,8 @@ for await (const component of components) {
 
   const jsDoc = component.jsDoc || '';
 
-  const source = await prettier.format(
-    `
+  // Not formatted: src/react is generated output (ignored by the Vite+ `fmt` config).
+  const source = `
       import * as React from 'react';
       import { createComponent } from '@lit/react';
       import Component from '../../${importPath}';
@@ -71,11 +69,7 @@ for await (const component of components) {
       })
 
       export default reactWrapper
-    `,
-    Object.assign(prettierConfig, {
-      parser: 'babel-ts',
-    }),
-  );
+    `;
 
   index.push(`export { default as ${component.name} } from './${tagWithoutPrefix}/index.js';`);
 

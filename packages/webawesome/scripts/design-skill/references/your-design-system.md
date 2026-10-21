@@ -88,7 +88,7 @@ color is set in three places, it is effectively set in none, because the next ch
    overrides at all.
 
 3. **Project tokens, for new concepts only.** A token the system doesn't have (`--app-content-measure:
-65ch`, `--app-sidebar-width: 16rem`) is fine. A new name for an existing token is not:
+   65ch`, `--app-sidebar-width: 16rem`) is fine. A new name for an existing token is not:
 
    ```css
    /* Incorrect: a parallel vocabulary that stops following the theme */

@@ -1,7 +1,7 @@
 import { aTimeout, expect, oneEvent } from '@open-wc/testing';
-import { sendKeys } from '@web/test-runner-commands';
 import { html } from 'lit';
 import sinon from 'sinon';
+import { sendKeys } from '../../internal/test/commands.js';
 import { expectEvent } from '../../internal/test/expect-event.js';
 import { fixtures } from '../../internal/test/fixture.js';
 import { runFormControlBaseTests } from '../../internal/test/form-control-base-tests.js';

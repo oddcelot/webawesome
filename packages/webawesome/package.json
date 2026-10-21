@@ -59,35 +59,36 @@
     "url": "https://github.com/shoelace-style/webawesome/issues"
   },
   "scripts": {
-    "start": "node scripts/build.js --develop --no-incremental",
+    "start": "vp dev",
+    "start:docs": "node scripts/build.js --develop --no-incremental",
     "start:alpha": "echo 'This command has been deprecated. Use: \"npm start\"\n'",
     "build": "node scripts/build.js",
-    "build:serve": "npm run build && npx http-server _site -p 4000",
+    "build:serve": "vp run build && npx http-server _site -p 4000",
     "publish-alpha-cdn": "./publish-alpha-cdn.sh",
     "create": "plop --plopfile scripts/plop/plopfile.js",
-    "test": "web-test-runner --group default",
-    "test:server": "SSR_ONLY=\"true\" npm run test",
-    "test:client": "CSR_ONLY=\"true\" npm run test",
-    "test:component": "web-test-runner -- --watch --group",
-    "test:component:server": "SSR_ONLY=\"true\" npm run test:component",
-    "test:component:client": "CSR_ONLY=\"true\" npm run test:component",
+    "test": "vp test run",
+    "test:server": "SSR_ONLY=\"true\" vp test run",
+    "test:client": "CSR_ONLY=\"true\" vp test run",
+    "test:component": "vp test watch",
+    "test:component:server": "SSR_ONLY=\"true\" vp test watch",
+    "test:component:client": "CSR_ONLY=\"true\" vp test watch",
     "test:anatomy": "node scripts/check-anatomy.js",
     "test:hydration": "node scripts/check-hydration.js",
     "test:parts": "node scripts/check-css-parts.js",
-    "test:watch": "web-test-runner --watch --group default",
-    "prettier": "prettier --check --log-level=warn --ignore-path=\"../../.prettierignore\" .",
-    "prettier:fix": "prettier --write --log-level=warn --ignore-path=\"../../.prettierignore\" .",
+    "test:watch": "vp test watch",
+    "check": "vp check",
+    "fmt": "vp fmt",
     "spellcheck": "cspell \"**/*.{js,ts,json,html,css,md}\" --no-progress --config=\"../../cspell.json\"",
     "verify:skills": "node scripts/verify-skills.js",
-    "verify": "npm run prettier && npm run test:parts && npm run test:anatomy && npm run build && npm run verify:skills && npm run test",
-    "prepublishOnly": "npm run verify",
+    "verify": "vp check && vp run test:parts && vp run test:anatomy && vp run build && vp run verify:skills && vp run test",
+    "prepublishOnly": "vp run verify",
     "check-updates": "npm-check-updates --cooldown 7 --interactive --format group",
     "print-version": "echo $npm_package_version",
     "tag-version": "git tag -a \"v$(npm run print-version | tail -n1)\" -m \"tag v$(npm run print-version | tail -n1)\"",
     "postversion": "node ./scripts/update-root-version.js"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   },
   "dependencies": {
     "@ctrl/tinycolor": "4.1.0",
@@ -104,12 +105,9 @@
     "marked": "^11.2.0",
     "nanoid": "^5.1.5"
   },
-  "lint-staged": {
-    "*.{ts,js}": [
-      "prettier --write"
-    ]
-  },
   "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "^0.21.0",
+    "@vitest/browser-playwright": "5.0.5",
     "@wc-toolkit/cem-validator": "^1.0.3",
     "@wc-toolkit/jsx-types": "^1.6.0",
     "cookie-parser": "^1.4.7",
@@ -118,6 +116,7 @@
     "npm-check-updates": "^19.1.2",
     "open": "^11.0.0",
     "semver": "^7.8.5",
-    "turndown": "^7.2.2"
+    "turndown": "^7.2.2",
+    "vite-plus": "^1.3.0"
   }
 }

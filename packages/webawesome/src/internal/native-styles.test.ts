@@ -23,7 +23,7 @@ function resolvedColor(el: HTMLElement, value: string) {
 }
 
 describe('native styles', () => {
-  before(async () => {
+  beforeAll(async () => {
     await loadNativeStyles();
   });
 

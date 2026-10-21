@@ -174,9 +174,9 @@ It's important to remember that, although accessibility starts with foundational
 
 ### Code Formatting
 
-Most code formatting is handled automatically by [Prettier](https://prettier.io/) via commit hooks. However, for the best experience, you should [install it in your editor](https://prettier.io/docs/en/editors.html) and enable format on save.
+Code formatting and linting are handled by the [Vite+](https://viteplus.dev/) toolchain (Oxfmt and Oxlint). A commit hook runs `vp check --fix` on staged files, and you can run `npm run check` (or `npm run fmt` to format only) at any time. For the best experience, install the [Vite Plus Extension Pack](https://marketplace.visualstudio.com/items?itemName=VoidZero.vite-plus-extension-pack) in your editor and enable format on save.
 
-Please do not make any changes to `prettier.config.cjs` without consulting the maintainers.
+Please do not make any changes to the `fmt` and `lint` settings in the root `vite.config.ts` without consulting the maintainers.
 
 ### Composability
 
@@ -493,6 +493,12 @@ or for hydrated rendering only:
 
 ```bash
 SSR_ONLY="true" npm run test
+```
+
+Tests run in real browsers through Vitest browser mode (`vp test`) and require a build first (`npm run build`). To run a single file in one browser:
+
+```bash
+npx vp test run src/components/button/button.test.ts --project chromium
 ```
 
 ## Built on

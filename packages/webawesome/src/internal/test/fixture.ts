@@ -3,14 +3,14 @@
  * These fixtures will also auto-load all of our components.
  */
 
-import { ssrFixture as LitSSRFixture, cleanupFixtures } from '@lit-labs/testing/fixtures.js';
+import { hydrate } from '@lit-labs/ssr-client';
 import { aTimeout, expect, fixture } from '@open-wc/testing';
 import type { LitElement, TemplateResult } from 'lit';
 import type WebAwesomeElement from '../webawesome-element.js';
+import { litSsrRender, resetMouseIfMoved } from './commands.js';
 
 declare global {
   interface Window {
-    clientComponents: string[];
     serverComponents: string[];
     SSR_ONLY: boolean;
     CSR_ONLY: boolean;
@@ -42,15 +42,55 @@ export async function clientFixture<T extends HTMLElement = HTMLElement>(templat
 // Make it easy to register describe blocks and tell what type of test failed.
 clientFixture.type = 'client-only' as const;
 
+let ssrContainers: HTMLElement[] = [];
+
+function cleanupFixtures() {
+  ssrContainers.forEach(container => container.remove());
+  ssrContainers = [];
+}
+
+const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+/**
+ * SSR-renders a template in Node (see `litSsrRender` in scripts/vitest/commands.ts), inserts the resulting declarative
+ * shadow DOM into the document, and hydrates it. Ported from @lit-labs/testing's `ssrFixture`.
+ */
+async function ssrFixture<T extends HTMLElement>(template: TemplateResult): Promise<T> {
+  const rendered = await litSsrRender({
+    template,
+    modules: window.serverComponents,
+  });
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  ssrContainers.push(container);
+
+  // Declarative Shadow DOM is only attached by parsers that opt in, so use `setHTMLUnsafe()`.
+  container.setHTMLUnsafe(rendered);
+
+  const el = container.firstElementChild as T;
+
+  if (el?.hasAttribute('defer-hydration')) {
+    el.removeAttribute('defer-hydration');
+    await (el as unknown as LitElement).updateComplete;
+  } else {
+    hydrate(template, container);
+    const litEl = container.querySelector<LitElement>('[defer-hydration]');
+    if (litEl) {
+      litEl.removeAttribute('defer-hydration');
+      await litEl.updateComplete;
+    } else {
+      await nextFrame();
+    }
+  }
+
+  return el;
+}
+
 /**
  * Loads up a fixture with SSR, using all unbundled modules, then when it finishes, calls hydration scripts, and then when hydration completes, returns the element.
  */
 export async function hydratedFixture<T extends HTMLElement = HTMLElement>(template: TemplateResult) {
-  const hydratedElement = await LitSSRFixture<T>(template, {
-    base: import.meta.url,
-    modules: window.serverComponents,
-    hydrate: true,
-  });
+  const hydratedElement = await ssrFixture<T>(template);
 
   // @ts-expect-error Assume its a lit element.
   await hydratedElement.updateComplete;
@@ -85,7 +125,7 @@ export const fixtures = [clientFixture, hydratedFixture].filter(fix => {
  * This registers the fixture cleanup as a side effect
  */
 try {
-  // We load Mocha globally, so this just makes it so every test file doesn't need to call beforeEach and afterEach to cleanup fixtures.
+  // Vitest globals are enabled (`test.globals`), so this just makes it so every test file doesn't need to call beforeEach and afterEach to cleanup fixtures.
   if (typeof beforeEach !== 'undefined') {
     beforeEach(async () => {
       cleanupFixtures();
@@ -95,6 +135,7 @@ try {
   if (typeof afterEach !== 'undefined') {
     afterEach(async () => {
       cleanupFixtures();
+      await resetMouseIfMoved();
       await aTimeout(1);
     });
   }

@@ -1,7 +1,7 @@
 import { aTimeout, expect, waitUntil } from '@open-wc/testing';
-import { resetMouse } from '@web/test-runner-commands';
 import { html } from 'lit';
 import sinon from 'sinon';
+import { resetMouse } from '../../internal/test/commands.js';
 import { expectEvent } from '../../internal/test/expect-event.js';
 import { fixtures } from '../../internal/test/fixture.js';
 import { clickOnElement, moveMouseOnElement } from '../../internal/test/pointer-utilities.js';

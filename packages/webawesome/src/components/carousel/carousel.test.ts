@@ -1,10 +1,10 @@
 import { aTimeout, expect, nextFrame, oneEvent, waitUntil } from '@open-wc/testing';
-import { resetMouse } from '@web/test-runner-commands';
 import { html } from 'lit';
 import { map } from 'lit/directives/map.js';
 import { range } from 'lit/directives/range.js';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
+import { resetMouse } from '../../internal/test/commands.js';
 import { clientFixture } from '../../internal/test/fixture.js';
 import { clickOnElement, moveMouseOnElement } from '../../internal/test/pointer-utilities.js';
 import type WaCarousel from './carousel.js';
@@ -446,9 +446,7 @@ describe('<wa-carousel>', () => {
         });
       });
 
-      describe('events', () => {
-        // wa-slide-change is tested implicitly through navigation tests
-      });
+      // wa-slide-change is tested implicitly through navigation tests
 
       describe('navigation controls', () => {
         describe('next button', () => {

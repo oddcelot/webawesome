@@ -342,30 +342,34 @@ export default class WaDropdownItem extends WebAwesomeElement {
 
   render() {
     return html`
-      ${this.href
-        ? html`
-            <a
-              id="link"
-              href=${this.href}
-              target=${ifDefined(this.target)}
-              rel=${ifDefined(this.rel)}
-              download=${ifDefined(this.download)}
-              tabindex="-1"
-              aria-hidden="true"
-            ></a>
-          `
-        : ''}
-      ${this.type === 'checkbox'
-        ? html`
-            <wa-icon
-              id="check"
-              part="checkmark"
-              exportparts="svg:checkmark__svg"
-              library="system"
-              name="check"
-            ></wa-icon>
-          `
-        : ''}
+      ${
+        this.href
+          ? html`
+              <a
+                id="link"
+                href=${this.href}
+                target=${ifDefined(this.target)}
+                rel=${ifDefined(this.rel)}
+                download=${ifDefined(this.download)}
+                tabindex="-1"
+                aria-hidden="true"
+              ></a>
+            `
+          : ''
+      }
+      ${
+        this.type === 'checkbox'
+          ? html`
+              <wa-icon
+                id="check"
+                part="checkmark"
+                exportparts="svg:checkmark__svg"
+                library="system"
+                name="check"
+              ></wa-icon>
+            `
+          : ''
+      }
 
       <span id="icon" part="icon">
         <slot name="icon"></slot>
@@ -379,32 +383,36 @@ export default class WaDropdownItem extends WebAwesomeElement {
         <slot name="details"></slot>
       </span>
 
-      ${this.hasSubmenu
-        ? html`
-            <wa-icon
-              id="submenu-indicator"
-              part="submenu-icon"
-              exportparts="svg:submenu-icon__svg"
-              library="system"
-              name="chevron-right"
-            ></wa-icon>
-          `
-        : ''}
-      ${this.hasSubmenu
-        ? html`
-            <div
-              id="submenu"
-              part="submenu"
-              popover="manual"
-              role="menu"
-              tabindex="-1"
-              aria-orientation="vertical"
-              hidden
-            >
-              <slot name="submenu"></slot>
-            </div>
-          `
-        : html`<slot name="submenu" hidden></slot>`}
+      ${
+        this.hasSubmenu
+          ? html`
+              <wa-icon
+                id="submenu-indicator"
+                part="submenu-icon"
+                exportparts="svg:submenu-icon__svg"
+                library="system"
+                name="chevron-right"
+              ></wa-icon>
+            `
+          : ''
+      }
+      ${
+        this.hasSubmenu
+          ? html`
+              <div
+                id="submenu"
+                part="submenu"
+                popover="manual"
+                role="menu"
+                tabindex="-1"
+                aria-orientation="vertical"
+                hidden
+              >
+                <slot name="submenu"></slot>
+              </div>
+            `
+          : html`<slot name="submenu" hidden></slot>`
+      }
     `;
   }
 }

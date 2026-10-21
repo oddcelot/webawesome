@@ -66,7 +66,7 @@ function runAllValidityTests(
         const createControl = renderControl(fixture);
         let mode = 'standard' as ReturnType<typeof getMode>;
 
-        before(async () => {
+        beforeAll(async () => {
           // will be used later to retrieve meta information about the control
           mode = getMode(await createControl());
         });

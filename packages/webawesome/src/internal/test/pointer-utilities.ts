@@ -1,4 +1,4 @@
-import { sendMouse } from '@web/test-runner-commands';
+import { sendMouse } from './commands.js';
 
 export const isSafari = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('HeadlessChrome');
 

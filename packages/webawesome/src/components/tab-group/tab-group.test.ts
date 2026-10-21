@@ -1,8 +1,8 @@
 import { aTimeout, expect, waitUntil } from '@open-wc/testing';
-import { sendKeys } from '@web/test-runner-commands';
 import type { HTMLTemplateResult } from 'lit';
 import { html } from 'lit';
 import sinon from 'sinon';
+import { sendKeys } from '../../internal/test/commands.js';
 import { expectEvent } from '../../internal/test/expect-event.js';
 import { clientFixture, fixtures } from '../../internal/test/fixture.js';
 import { clickOnElement } from '../../internal/test/pointer-utilities.js';
@@ -661,15 +661,9 @@ describe('<wa-tab-group>', () => {
       });
 
       describe('scrolling behavior', () => {
-        before(() => {
+        beforeAll(() => {
           const errorHandler = window.onerror;
-          window.onerror = (
-            event: string | Event,
-            source?: string | undefined,
-            lineno?: number | undefined,
-            colno?: number | undefined,
-            error?: Error | undefined,
-          ) => {
+          window.onerror = (event: string | Event, source?: string, lineno?: number, colno?: number, error?: Error) => {
             if ((event as string).includes('ResizeObserver') || event === 'Script error.') {
               return true;
             } else if (errorHandler) {

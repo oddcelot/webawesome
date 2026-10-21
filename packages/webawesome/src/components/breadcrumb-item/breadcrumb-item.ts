@@ -76,33 +76,39 @@ export default class WaBreadcrumbItem extends WebAwesomeElement {
         <slot name="start"></slot>
       </span>
 
-      ${this.renderType === 'link'
-        ? html`
-            <a
-              part="label"
-              class="label label-link"
-              href="${this.href!}"
-              target="${ifDefined(this.target ? this.target : undefined)}"
-              rel=${ifDefined(this.target ? this.rel : undefined)}
-            >
-              <slot></slot>
-            </a>
-          `
-        : ''}
-      ${this.renderType === 'button'
-        ? html`
-            <button part="label" type="button" class="label label-button">
-              <slot @slotchange=${this.handleSlotChange}></slot>
-            </button>
-          `
-        : ''}
-      ${this.renderType === 'dropdown'
-        ? html`
-            <div part="label" class="label label-dropdown">
-              <slot @slotchange=${this.handleSlotChange}></slot>
-            </div>
-          `
-        : ''}
+      ${
+        this.renderType === 'link'
+          ? html`
+              <a
+                part="label"
+                class="label label-link"
+                href="${this.href!}"
+                target="${ifDefined(this.target ? this.target : undefined)}"
+                rel=${ifDefined(this.target ? this.rel : undefined)}
+              >
+                <slot></slot>
+              </a>
+            `
+          : ''
+      }
+      ${
+        this.renderType === 'button'
+          ? html`
+              <button part="label" type="button" class="label label-button">
+                <slot @slotchange=${this.handleSlotChange}></slot>
+              </button>
+            `
+          : ''
+      }
+      ${
+        this.renderType === 'dropdown'
+          ? html`
+              <div part="label" class="label label-dropdown">
+                <slot @slotchange=${this.handleSlotChange}></slot>
+              </div>
+            `
+          : ''
+      }
 
       <span part="end" class="end">
         <slot name="end"></slot>

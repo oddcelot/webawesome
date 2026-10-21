@@ -41,10 +41,10 @@ static reference, update both surfaces so it's discoverable.
 
 1. Edit the relevant Markdown file in this directory.
 2. Re-copy into dist via a full build (`npm run build`).
-3. Run Prettier so source and dist stay byte-identical and formatted:
+3. Run the Vite+ formatter so source and dist stay byte-identical and formatted:
 
    ```bash
-   npx prettier --write 'scripts/agent-skill/**/*.md'
+   npx vp fmt scripts/agent-skill
    ```
 
 4. Run the skill verifier:

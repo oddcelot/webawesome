@@ -456,16 +456,20 @@ export default class WaKnownDate extends WebAwesomeFormAssociatedElement {
           'form-control-has-label': hasLabel,
         })}
       >
-        ${hasLabel
-          ? html`<fieldset part="fieldset" class="fieldset">
-              <legend part="legend">
-                <span part="form-control-label label" class="label">
-                  <slot name="label">${this.label}</slot>
-                </span>
-              </legend>
-              ${groupContent}
-            </fieldset>`
-          : html`<div part="fieldset" class="fieldset" role="group" aria-label=${groupAriaLabel}>${groupContent}</div>`}
+        ${
+          hasLabel
+            ? html`<fieldset part="fieldset" class="fieldset">
+                <legend part="legend">
+                  <span part="form-control-label label" class="label">
+                    <slot name="label">${this.label}</slot>
+                  </span>
+                </legend>
+                ${groupContent}
+              </fieldset>`
+            : html`<div part="fieldset" class="fieldset" role="group" aria-label=${groupAriaLabel}>
+                ${groupContent}
+              </div>`
+        }
 
         <input
           class="value-input"

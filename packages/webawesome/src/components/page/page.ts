@@ -204,7 +204,7 @@ export default class WaPage extends WebAwesomeElement {
   /**
    * Sets a `nonce` for the injected `<style>` tag used for handling media queries. The style tag will use `window.litNonce` if `nonce` isn't defined on `<wa-page>`
    */
-  @property({ reflect: true }) nonce: string | undefined;
+  @property({ reflect: true }) nonce: string;
 
   /**
    * Whether or not the navigation drawer is open. Note, the navigation drawer is only "open" on mobile views.

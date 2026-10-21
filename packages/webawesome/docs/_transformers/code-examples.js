@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
-import { parse } from 'node-html-parser';
 import * as path from 'node:path';
+import { parse } from 'node-html-parser';
 import { copyCode } from './copy-code.js';
 import { highlightCode } from './highlight-code.js';
 

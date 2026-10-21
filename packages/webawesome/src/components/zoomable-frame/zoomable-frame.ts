@@ -308,33 +308,35 @@ export default class WaZoomableFrame extends WebAwesomeElement {
         ></iframe>
       </div>
 
-      ${!this.withoutControls
-        ? html`
-            <div id="controls" part="controls">
-              <button
-                part="zoom-out-button"
-                aria-label=${this.localize.term('zoomOut')}
-                @click=${this.zoomOut}
-                ?disabled=${this.isZoomOutDisabled()}
-              >
-                <slot name="zoom-out-icon">
-                  <wa-icon name="minus" label="Zoom out"></wa-icon>
-                </slot>
-              </button>
-              <span>${this.localize.number(this.zoom, { style: 'percent', maximumFractionDigits: 1 })}</span>
-              <button
-                part="zoom-in-button"
-                aria-label=${this.localize.term('zoomIn')}
-                @click=${this.zoomIn}
-                ?disabled=${this.isZoomInDisabled()}
-              >
-                <slot name="zoom-in-icon">
-                  <wa-icon name="plus" label="Zoom in"></wa-icon>
-                </slot>
-              </button>
-            </div>
-          `
-        : ''}
+      ${
+        !this.withoutControls
+          ? html`
+              <div id="controls" part="controls">
+                <button
+                  part="zoom-out-button"
+                  aria-label=${this.localize.term('zoomOut')}
+                  @click=${this.zoomOut}
+                  ?disabled=${this.isZoomOutDisabled()}
+                >
+                  <slot name="zoom-out-icon">
+                    <wa-icon name="minus" label="Zoom out"></wa-icon>
+                  </slot>
+                </button>
+                <span>${this.localize.number(this.zoom, { style: 'percent', maximumFractionDigits: 1 })}</span>
+                <button
+                  part="zoom-in-button"
+                  aria-label=${this.localize.term('zoomIn')}
+                  @click=${this.zoomIn}
+                  ?disabled=${this.isZoomInDisabled()}
+                >
+                  <slot name="zoom-in-icon">
+                    <wa-icon name="plus" label="Zoom in"></wa-icon>
+                  </slot>
+                </button>
+              </div>
+            `
+          : ''
+      }
     `;
   }
 }

@@ -293,33 +293,35 @@ export default class WaDrawer extends WebAwesomeElement {
         @click=${this.handleDialogClick}
         @pointerdown=${this.handleDialogPointerDown}
       >
-        ${hasHeader
-          ? html`
-              <div part="header" class="header">
-                <h2 part="title" class="title" id="title">
-                  <!-- If there's no label, use an invisible character to prevent the header from collapsing -->
-                  <slot name="label"> ${this.label.length > 0 ? this.label : String.fromCharCode(8203)} </slot>
-                </h2>
-                <div part="header-actions" class="header-actions">
-                  <slot name="header-actions"></slot>
-                  <wa-button
-                    part="close-button"
-                    exportparts="base:close-button__base"
-                    class="close"
-                    appearance="plain"
-                    @click="${(event: PointerEvent) => this.requestClose(event.target as Element)}"
-                  >
-                    <wa-icon
-                      name="xmark"
-                      label=${this.localize.term('close')}
-                      library="system"
-                      variant="solid"
-                    ></wa-icon>
-                  </wa-button>
+        ${
+          hasHeader
+            ? html`
+                <div part="header" class="header">
+                  <h2 part="title" class="title" id="title">
+                    <!-- If there's no label, use an invisible character to prevent the header from collapsing -->
+                    <slot name="label"> ${this.label.length > 0 ? this.label : String.fromCharCode(8203)} </slot>
+                  </h2>
+                  <div part="header-actions" class="header-actions">
+                    <slot name="header-actions"></slot>
+                    <wa-button
+                      part="close-button"
+                      exportparts="base:close-button__base"
+                      class="close"
+                      appearance="plain"
+                      @click="${(event: PointerEvent) => this.requestClose(event.target as Element)}"
+                    >
+                      <wa-icon
+                        name="xmark"
+                        label=${this.localize.term('close')}
+                        library="system"
+                        variant="solid"
+                      ></wa-icon>
+                    </wa-button>
+                  </div>
                 </div>
-              </div>
-            `
-          : ''}
+              `
+            : ''
+        }
 
         <div part="body" class="body"><slot></slot></div>
 

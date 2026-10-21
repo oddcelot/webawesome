@@ -212,19 +212,21 @@ export default class WaStep extends WebAwesomeElement {
           ?data-completed=${!!this.connectorStartVariant}
         ></span>
         <span part="connector" class="connector-end"></span>
-        ${this.clickable
-          ? html`
-              <button
-                part="button"
-                class="body"
-                type="button"
-                ?disabled=${this.disabled || this.locked}
-                aria-current=${this.active ? 'step' : nothing}
-              >
-                ${body}
-              </button>
-            `
-          : html`<div class="body">${body}</div>`}
+        ${
+          this.clickable
+            ? html`
+                <button
+                  part="button"
+                  class="body"
+                  type="button"
+                  ?disabled=${this.disabled || this.locked}
+                  aria-current=${this.active ? 'step' : nothing}
+                >
+                  ${body}
+                </button>
+              `
+            : html`<div class="body">${body}</div>`
+        }
       </div>
     `;
   }

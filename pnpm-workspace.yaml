@@ -4,3 +4,8 @@ allowBuilds:
   esbuild: true
   rs-module-lexer: true
 nodeLinker: hoisted
+overrides:
+  playwright: '^1.49.1'
+  axe-core: '^4.11.4'
+  vite@*: npm:@voidzero-dev/vite-plus-core@1.3.0
+  vitest@*: 5.0.5

@@ -1,14 +1,13 @@
+import fs, { mkdirSync } from 'fs';
+import path from 'path';
 // Generates a /src/ssr/all.js endpoint for easily grabbing all components on a server for SSR
 import commandLineArgs from 'command-line-args';
 import { deleteSync } from 'del';
-import fs, { mkdirSync } from 'fs';
-import path from 'path';
 import { getAllComponents } from './shared.js';
 
 const { outdir } = commandLineArgs({ name: 'outdir', type: String });
 
-import prettier from 'prettier';
-import { default as prettierConfig } from '../../../prettier.config.js';
+import { execFileSync } from 'child_process';
 
 const allFile = path.join(process.env.ROOT_DIR || '.', 'src', 'ssr', 'all.ts');
 
@@ -35,12 +34,9 @@ for (const component of components) {
 }
 
 const preamble = `// This file is auto-generated. Do not edit it directly.`;
-let text = preamble + '\n' + index.join('\n');
-text = await prettier.format(
-  text,
-  Object.assign(prettierConfig, {
-    parser: 'babel-ts',
-  }),
-);
+const text = preamble + '\n' + index.join('\n') + '\n';
 
 fs.writeFileSync(allFile, text, 'utf8');
+
+// Format with Vite+ (config comes from the root vite.config.ts `fmt` block)
+execFileSync('vp', ['fmt', allFile], { stdio: 'inherit', env: process.env });

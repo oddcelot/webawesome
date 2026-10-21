@@ -5,14 +5,15 @@ Web Awesome — free/open-source Lit-based web component library (`@awesome.me/w
 ## Commands
 
 ```bash
-npm start                  # Dev server with watch mode
-npm run build              # Production build (esbuild)
-npm test                   # Run all component tests (web-test-runner)
-npm run test:component -- --watch --group button  # Watch single component tests
+npm start                  # Vite+ dev server (vp dev) with Lit HMR, serves index.html
+npm run start:docs         # Docs site dev server with watch mode (Vite+ pack + 11ty)
+npm run build              # Production build (scripts/build.js, bundles with Vite+ pack)
+npm test                   # Run all component tests (vp test, Vitest browser mode)
+npm run test:component -- button  # Watch single component tests
 npm run create             # Create new component (interactive Plop prompt)
-npm run verify             # prettier + build + test (full check)
-npm run check-types        # TypeScript type checking
-npm run prettier:fix       # Format code
+npm run verify             # vp check + build + test (full check)
+npm run check              # vp check: format, lint, and type check
+npm run fmt                # vp fmt: format code
 ```
 
 ## Component Anatomy
@@ -21,7 +22,7 @@ Each component lives in `src/components/<name>/` with three files:
 
 - `<name>.ts` — Component class (Lit web component)
 - `<name>.styles.ts` — Styles using Lit `css` tagged template
-- `<name>.test.ts` — Tests (web-test-runner + @open-wc/testing)
+- `<name>.test.ts` — Tests (Vitest + @open-wc/testing)
 
 Create new components with `npm run create` (Plop templates in `scripts/plop/`). Names must start with `wa-`.
 
@@ -87,18 +88,20 @@ Missing tags will cause missing documentation and incomplete CEM output.
 
 ## Testing
 
-- **Framework**: `@open-wc/testing` with `web-test-runner` (Playwright: Chromium, Firefox, WebKit).
-- **Fixture**: Import `{ fixtures }` from `src/internal/test/fixture.js` — an array of CSR/SSR-aware fixture functions (`clientFixture`, `hydratedFixture`). For simple CSR-only tests, `fixture` from `@open-wc/testing` also works.
+- **Framework**: Vitest browser mode via Vite+ (`vp test`), Playwright projects `chromium`, `firefox`, `webkit` (WebKit is skipped when `CI=true`). Config is the `test` block in `vite.config.ts`; tests need a built `dist/` and `dist-cdn/` (`npm run build`).
+- **Assertions/fixtures**: `@open-wc/testing` (`expect`, `fixture`, `html`, `aTimeout`, `waitUntil`, `oneEvent`) and Sinon. `describe`/`it`/`beforeEach` are Vitest globals (`beforeAll`/`afterAll`, not Mocha's `before`/`after`; use `({ skip }) => skip()` instead of `this.skip()`).
+- **Fixtures**: Import `{ fixtures }` from `src/internal/test/fixture.js` — an array of CSR/SSR-aware fixture functions (`clientFixture`, `hydratedFixture`). For simple CSR-only tests, `fixture` from `@open-wc/testing` also works.
+- **Real input**: `sendKeys`, `sendMouse`, `resetMouse`, `setViewport`, `emulateMedia`, `readFile` come from `src/internal/test/commands.js` (Node-side commands live in `scripts/vitest/commands.ts`).
 - **Accessibility**: `await expect(el).to.be.accessible();`
 - **Form controls**: `runFormControlBaseTests({ tagName: 'wa-input' })` from `src/internal/test/form-control-base-tests.js` — runs standard form behavior tests.
-- **Spies/stubs**: Sinon. **Async helpers**: `aTimeout(ms)`, `waitUntil(() => condition)`.
-- **Run single component**: `npm run test:component -- --watch --group <name>` (group = component name without `wa-` prefix).
+- **Run everything**: `npm test` (`test:client` = CSR only, `test:server` = SSR/hydration only). One browser: `npx vp test run --project chromium`.
+- **Run a single file**: `npx vp test run src/components/button/button.test.ts --project chromium`. Watch mode: `npm run test:component -- button` (filter by path substring). Set `FAIL_FAST=true` to stop at the first failure.
 
 ## Build System
 
-Custom esbuild-based build (`scripts/build.js`). Generates:
+Custom build (`scripts/build.js`); JS is bundled with Vite+ pack (tsdown, `scripts/pack.config.js`). Generates:
 
-- `dist/` — Unbundled ES modules + TypeScript declarations
+- `dist/` — ES modules with dependencies external + TypeScript declarations
 - `dist-cdn/` — Bundled for CDN use
 - Custom Elements Manifest (`custom-elements.json`)
 - React wrappers (`src/react/`)

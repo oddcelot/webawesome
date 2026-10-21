@@ -1,37 +1,30 @@
-import browserSync from 'browser-sync';
-import chalk from 'chalk';
 import { execSync } from 'child_process';
-import { deleteAsync } from 'del';
-import esbuild from 'esbuild';
-import { replace } from 'esbuild-plugin-replace';
 import { mkdir, readFile } from 'fs/promises';
-import getPort, { portNumbers } from 'get-port';
-import { globby } from 'globby';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { dirname, extname, join, posix, relative } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import browserSync from 'browser-sync';
+import chalk from 'chalk';
+// @ts-expect-error used for SSR cookies
+import cookieParser from 'cookie-parser';
+import { deleteAsync } from 'del';
+import getPort, { portNumbers } from 'get-port';
 import open from 'open';
 import ora from 'ora';
 import copy from 'recursive-copy';
 import { SimulateWebAwesomeApp } from '../docs/_utils/simulate-webawesome-app.js';
 import { generateDocs } from './docs.js';
 import { generateLlmsTxtFile } from './llms.js';
+import { bundleJs } from './pack.config.js';
 import { formatError, getCdnDir, getDistDir, getDocsDir, getRootDir, getSiteDir } from './utils.js';
-
-// @ts-expect-error used for SSR cookies
-import cookieParser from 'cookie-parser';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 let litRenderString = str => str;
 
 const currentYear = new Date().getFullYear();
 const spinner = ora();
-let buildContexts = {
-  bundledContext: {},
-  unbundledContext: {},
-};
 
 const debugPerf = process.env.DEBUG_PERFORMANCE === '1';
 const isDeveloping = process.argv.includes('--develop');
@@ -257,104 +250,36 @@ export async function build(options = {}) {
   }
 
   /**
-   * Runs esbuild to generate the final dist.
+   * Runs Vite+ pack (tsdown) to generate the final dist-cdn (deps bundled) and dist (deps external).
+   * Also used to re-bundle in development mode.
    */
   async function generateBundle() {
-    spinner.start('Bundling with esbuild');
-
-    const rootDir = process.env.ROOT_DIR || '.';
-    // Bundled config
-    const config = {
-      conditions: isDeveloping ? ['development'] : [],
-      format: 'esm',
-      target: 'es2020',
-      entryPoints: [
-        //
-        // IMPORTANT: Entry points MUST be mapped in package.json => exports
-        //
-        // Utilities
-        join(rootDir, 'src/webawesome.ts'),
-        // Autoloader + utilities
-        join(rootDir, 'src/webawesome.loader.ts'),
-        join(rootDir, 'src/webawesome.ssr-loader.ts'),
-        // Individual components
-        ...(await globby(posix.join(rootDir, 'src/components/**/!(*.(style|test)).ts'))),
-        // Translations
-        ...(await globby(posix.join(rootDir, 'src/translations/**/*.ts'))),
-        // Utilities
-        ...(await globby(posix.join(rootDir, 'src/utilities/**/*.ts'))),
-        // Events
-        ...(await globby(posix.join(rootDir, 'src/events/**/*.ts'))),
-        // TODO: Should `src/internal` be included?
-        ...(await globby(posix.join(rootDir, 'src/ssr/**/*.ts'))),
-        // React wrappers
-        ...(await globby(posix.join(rootDir, 'src/react/**/*.ts'))),
-      ],
-      outdir: getCdnDir(),
-      chunkNames: 'chunks/[name].[hash]',
-      define: {
-        'process.env.NODE_ENV': '"production"', // required by Floating UI
-      },
-      bundle: true,
-      splitting: true,
-      minify: false,
-      banner: {
-        js: `/*! Copyright ${currentYear} Fonticons, Inc. - https://webawesome.com/license */`,
-      },
-      plugins: [replace({ __WEBAWESOME_VERSION__: version })],
-    };
-
-    const unbundledConfig = {
-      ...config,
-      splitting: true,
-      treeShaking: true,
-      // Don't inline libraries like Lit etc.
-      packages: 'external',
-      outdir: getDistDir(),
-    };
+    spinner.start('Bundling with Vite+ pack');
 
     try {
-      if (isDeveloping) {
-        buildContexts.bundledContext = await esbuild.context(config);
-        buildContexts.unbundledContext = await esbuild.context(unbundledConfig);
-
-        await buildContexts.bundledContext.rebuild();
-        await buildContexts.unbundledContext.rebuild();
-      } else {
-        // One-time build for production
-        await esbuild.build(config);
-        await esbuild.build(unbundledConfig);
-      }
+      await bundleJs({
+        rootDir: process.env.ROOT_DIR || '.',
+        version,
+        cdnDir: getCdnDir(),
+        distDir: getDistDir(),
+        isDeveloping,
+      });
     } catch (error) {
       spinner.fail();
       console.log(chalk.red(`\n${error}`));
       if (!isDeveloping) {
         process.exit(1);
       }
+      return;
     }
 
     spinner.succeed();
   }
 
   /**
-   * Incrementally rebuilds the source files. Must be called only after `generateBundle()` has been called.
+   * Rebuilds the source files in development mode.
    */
-  async function regenerateBundle() {
-    try {
-      spinner.start('Re-bundling with esbuild');
-      await buildContexts.bundledContext.rebuild();
-      await buildContexts.unbundledContext.rebuild();
-    } catch (error) {
-      spinner.fail();
-      console.log(chalk.red(`\n${error}`));
-
-      if (!isDeveloping) {
-        process.exit(1);
-      }
-    }
-
-    spinner.succeed();
-  }
+  const regenerateBundle = generateBundle;
 
   // Initial build
   await buildAll();
@@ -596,9 +521,6 @@ export async function build(options = {}) {
   // Cleanup everything when the process terminates
   //
   function terminate() {
-    // dispose of contexts.
-    Object.values(buildContexts).forEach(context => context?.dispose?.());
-
     if (spinner) {
       spinner.stop();
     }

@@ -422,24 +422,26 @@ export default class WaTabGroup extends WebAwesomeElement {
         @keydown=${this.handleKeyDown}
       >
         <div class="nav-container" part="nav">
-          ${this.hasScrollControls
-            ? html`
-                <wa-button
-                  part="scroll-button scroll-button-start"
-                  exportparts="base:scroll-button__base"
-                  class="scroll-button scroll-button-start"
-                  appearance="plain"
-                  @click=${this.handleScrollToStart}
-                >
-                  <wa-icon
-                    name=${isRtl ? 'chevron-right' : 'chevron-left'}
-                    library="system"
-                    variant="solid"
-                    label=${this.localize.term('scrollToStart')}
-                  ></wa-icon>
-                </wa-button>
-              `
-            : ''}
+          ${
+            this.hasScrollControls
+              ? html`
+                  <wa-button
+                    part="scroll-button scroll-button-start"
+                    exportparts="base:scroll-button__base"
+                    class="scroll-button scroll-button-start"
+                    appearance="plain"
+                    @click=${this.handleScrollToStart}
+                  >
+                    <wa-icon
+                      name=${isRtl ? 'chevron-right' : 'chevron-left'}
+                      library="system"
+                      variant="solid"
+                      label=${this.localize.term('scrollToStart')}
+                    ></wa-icon>
+                  </wa-button>
+                `
+              : ''
+          }
 
           <!-- We have a focus listener because in Firefox (and soon to be Chrome) overflow containers are focusable. -->
           <div class="nav" @focus=${() => this.activeTab?.focus({ preventScroll: true })}>
@@ -448,24 +450,26 @@ export default class WaTabGroup extends WebAwesomeElement {
             </div>
           </div>
 
-          ${this.hasScrollControls
-            ? html`
-                <wa-button
-                  part="scroll-button scroll-button-end"
-                  class="scroll-button scroll-button-end"
-                  exportparts="base:scroll-button__base"
-                  appearance="plain"
-                  @click=${this.handleScrollToEnd}
-                >
-                  <wa-icon
-                    name=${isRtl ? 'chevron-left' : 'chevron-right'}
-                    library="system"
-                    variant="solid"
-                    label=${this.localize.term('scrollToEnd')}
-                  ></wa-icon>
-                </wa-button>
-              `
-            : ''}
+          ${
+            this.hasScrollControls
+              ? html`
+                  <wa-button
+                    part="scroll-button scroll-button-end"
+                    class="scroll-button scroll-button-end"
+                    exportparts="base:scroll-button__base"
+                    appearance="plain"
+                    @click=${this.handleScrollToEnd}
+                  >
+                    <wa-icon
+                      name=${isRtl ? 'chevron-left' : 'chevron-right'}
+                      library="system"
+                      variant="solid"
+                      label=${this.localize.term('scrollToEnd')}
+                    ></wa-icon>
+                  </wa-button>
+                `
+              : ''
+          }
         </div>
 
         <div part="body" class="body"><slot @slotchange=${this.syncTabsAndPanels}></slot></div>

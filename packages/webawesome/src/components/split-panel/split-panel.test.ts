@@ -1,6 +1,6 @@
 import { aTimeout, expect } from '@open-wc/testing';
-import { resetMouse, sendKeys } from '@web/test-runner-commands';
 import { html } from 'lit';
+import { resetMouse, sendKeys } from '../../internal/test/commands.js';
 import { expectEvent } from '../../internal/test/expect-event.js';
 import { fixtures } from '../../internal/test/fixture.js';
 import { dragElement } from '../../internal/test/pointer-utilities.js';

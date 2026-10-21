@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises';
+import { basename, dirname } from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 /**
  * Guards the component CSS-part surface statically (no build):
  *   1. every rendered `part=` has a matching `@csspart`, so docs can't drift from render;
@@ -8,10 +12,6 @@
  * for it rather than reported with false positives.
  */
 import { globby } from 'globby';
-import { readFile } from 'node:fs/promises';
-import { basename, dirname } from 'node:path';
-import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = dirname(__dirname);

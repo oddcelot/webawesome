@@ -1,7 +1,7 @@
 import { aTimeout, expect, oneEvent, waitUntil } from '@open-wc/testing';
-import { sendKeys, sendMouse } from '@web/test-runner-commands';
 import { html } from 'lit';
 import sinon from 'sinon';
+import { sendKeys, sendMouse } from '../../internal/test/commands.js';
 import { expectEvent } from '../../internal/test/expect-event.js';
 import { fixtures } from '../../internal/test/fixture.js';
 import { runFormControlBaseTests } from '../../internal/test/form-control-base-tests.js';
@@ -43,7 +43,12 @@ function paste(el: WaTagInput, text: string) {
   const clipboardData = new DataTransfer();
   clipboardData.setData('text/plain', text);
   getInput(el).dispatchEvent(
-    new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true, composed: true }),
+    new ClipboardEvent('paste', {
+      clipboardData,
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+    }),
   );
 }
 
@@ -407,8 +412,8 @@ describe('<wa-tag-input>', () => {
           expect(el.value).to.deep.equal(['a,b']);
         });
 
-        it('should split pasted text on delimiters into tags', async function () {
-          if (!supportsSyntheticPaste()) this.skip();
+        it('should split pasted text on delimiters into tags', async ({ skip }) => {
+          if (!supportsSyntheticPaste()) skip();
           const el = await fixture<WaTagInput>(html`<wa-tag-input></wa-tag-input>`);
 
           el.focus();
@@ -420,8 +425,8 @@ describe('<wa-tag-input>', () => {
           expect(el.inputValue).to.equal('');
         });
 
-        it('should combine pasted text with the text already in the text box', async function () {
-          if (!supportsSyntheticPaste()) this.skip();
+        it('should combine pasted text with the text already in the text box', async ({ skip }) => {
+          if (!supportsSyntheticPaste()) skip();
           const el = await fixture<WaTagInput>(html`<wa-tag-input></wa-tag-input>`);
 
           await type(el, 'ab');
@@ -432,8 +437,8 @@ describe('<wa-tag-input>', () => {
           expect(el.value).to.deep.equal(['abc', 'd']);
         });
 
-        it('should keep pasted text beyond max-tags in the text box', async function () {
-          if (!supportsSyntheticPaste()) this.skip();
+        it('should keep pasted text beyond max-tags in the text box', async ({ skip }) => {
+          if (!supportsSyntheticPaste()) skip();
           const el = await fixture<WaTagInput>(html`<wa-tag-input max-tags="2"></wa-tag-input>`);
 
           el.focus();
@@ -445,8 +450,8 @@ describe('<wa-tag-input>', () => {
           expect(el.inputValue).to.equal('c,d');
         });
 
-        it('should leave pasted text without a delimiter to the browser', async function () {
-          if (!supportsSyntheticPaste()) this.skip();
+        it('should leave pasted text without a delimiter to the browser', async ({ skip }) => {
+          if (!supportsSyntheticPaste()) skip();
           const el = await fixture<WaTagInput>(html`<wa-tag-input></wa-tag-input>`);
           const pasteHandler = sinon.spy();
 
@@ -591,7 +596,9 @@ describe('<wa-tag-input>', () => {
           await type(el, 'no');
           await press(el, 'Enter');
           expect(createHandler).to.have.been.calledOnce;
-          expect(createHandler.firstCall.args[0].detail).to.deep.equal({ inputValue: 'no' });
+          expect(createHandler.firstCall.args[0].detail).to.deep.equal({
+            inputValue: 'no',
+          });
           expect(el.value).to.deep.equal([]);
           expect(el.inputValue).to.equal('no');
 
@@ -931,7 +938,9 @@ describe('<wa-tag-input>', () => {
       describe('forms', () => {
         it('should serialize one entry per tag with FormData and JSON', async () => {
           const form = await fixture<HTMLFormElement>(
-            html`<form><wa-tag-input name="tags" value="a, b"></wa-tag-input></form>`,
+            html`<form>
+              <wa-tag-input name="tags" value="a, b"></wa-tag-input>
+            </form>`,
           );
 
           expect(new FormData(form).getAll('tags')).to.deep.equal(['a', 'b']);
@@ -940,7 +949,9 @@ describe('<wa-tag-input>', () => {
 
         it('should update the form value as tags are added and removed', async () => {
           const form = await fixture<HTMLFormElement>(
-            html`<form><wa-tag-input name="tags" value="a, b"></wa-tag-input></form>`,
+            html`<form>
+              <wa-tag-input name="tags" value="a, b"></wa-tag-input>
+            </form>`,
           );
           const el = form.querySelector<WaTagInput>('wa-tag-input')!;
 
@@ -955,7 +966,9 @@ describe('<wa-tag-input>', () => {
 
         it('should submit nothing when disabled', async () => {
           const form = await fixture<HTMLFormElement>(
-            html`<form><wa-tag-input name="tags" value="a, b" disabled></wa-tag-input></form>`,
+            html`<form>
+              <wa-tag-input name="tags" value="a, b" disabled></wa-tag-input>
+            </form>`,
           );
 
           expect(new FormData(form).getAll('tags')).to.deep.equal([]);
@@ -964,7 +977,9 @@ describe('<wa-tag-input>', () => {
         it('should submit nothing inside a disabled fieldset', async () => {
           const form = await fixture<HTMLFormElement>(html`
             <form>
-              <fieldset disabled><wa-tag-input name="tags" value="a, b"></wa-tag-input></fieldset>
+              <fieldset disabled>
+                <wa-tag-input name="tags" value="a, b"></wa-tag-input>
+              </fieldset>
             </form>
           `);
           const el = form.querySelector<WaTagInput>('wa-tag-input')!;

@@ -1,6 +1,14 @@
-/* This is the "dev" TS Config which includes typechecking for test. This is used by ESLint to provide TypeScript errors for test files */
+/* This is the "dev" TS Config, which includes test files. It is used by editors and by `vp check` (type-aware linting and type checking) */
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": [
+      "vite-plus/test/globals",
+      "user-agent-data-types",
+      "vite/client",
+      "@oddsquad/vite-plugin-lit/client"
+    ]
+  },
   "include": [
     "src"
   ]

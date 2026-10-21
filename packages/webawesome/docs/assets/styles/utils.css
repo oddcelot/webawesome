@@ -1045,23 +1045,23 @@
           transparent var(--background-grid-line-width)
         ),
         /* main grid - horizontal lines */
-          linear-gradient(
-            to bottom,
-            var(--background-grid-line-color) var(--background-grid-line-width),
-            transparent var(--background-grid-line-width)
-          ),
+        linear-gradient(
+          to bottom,
+          var(--background-grid-line-color) var(--background-grid-line-width),
+          transparent var(--background-grid-line-width)
+        ),
         /* sub-grid - vertical lines (offset by half the main grid spacing) */
-          linear-gradient(
-            to right,
-            var(--background-subgrid-line-color) var(--background-subgrid-line-width),
-            transparent var(--background-subgrid-line-width)
-          ),
+        linear-gradient(
+          to right,
+          var(--background-subgrid-line-color) var(--background-subgrid-line-width),
+          transparent var(--background-subgrid-line-width)
+        ),
         /* sub-grid - horizontal lines (offset by half the main grid spacing) */
-          linear-gradient(
-            to bottom,
-            var(--background-subgrid-line-color) var(--background-subgrid-line-width),
-            transparent var(--background-subgrid-line-width)
-          );
+        linear-gradient(
+          to bottom,
+          var(--background-subgrid-line-color) var(--background-subgrid-line-width),
+          transparent var(--background-subgrid-line-width)
+        );
 
       background-size:
         var(--background-grid-spacing) var(--background-grid-spacing),

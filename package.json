@@ -12,29 +12,26 @@
   ],
   "scripts": {
     "check-updates": "npx npm-check-updates --interactive --format group",
-    "start": "cd packages/webawesome && npm run start",
-    "build": "cd packages/webawesome && npm run build",
-    "start:pro": "cd packages/webawesome-pro && npm run start",
-    "build:pro": "cd packages/webawesome-pro && npm run build"
+    "start": "cd packages/webawesome && vp run start",
+    "build": "cd packages/webawesome && vp run build",
+    "start:pro": "cd packages/webawesome-pro && vp run start",
+    "build:pro": "cd packages/webawesome-pro && vp run build",
+    "check": "vp check",
+    "fmt": "vp fmt",
+    "prepare": "vp config --no-agent"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
   },
   "devDependencies": {
     "@11ty/eleventy": "3.0.0",
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@lit-labs/eleventy-plugin-lit": "^1.0.6",
-    "@lit-labs/testing": "^0.2.5",
     "@lit/react": "^1.0.8",
     "@open-wc/testing": "^3.2.0",
-    "@types/mocha": "^10.0.10",
     "@types/react": "^18.2.28",
     "@wc-toolkit/cem-inheritance": "^1.2.2",
     "@wc-toolkit/type-parser": "^1.2.0",
-    "@web/dev-server-esbuild": "^0.3.6",
-    "@web/test-runner": "^0.19.0",
-    "@web/test-runner-commands": "^0.9.0",
-    "@web/test-runner-playwright": "^0.11.0",
     "browser-sync": "^2.29.3",
     "chalk": "^5.3.0",
     "change-case": "^4.1.2",
@@ -49,13 +46,9 @@
     "custom-element-vuejs-integration": "^1.4.0",
     "del": "^7.1.0",
     "download": "^8.0.0",
-    "esbuild": "0.25.12",
-    "esbuild-plugin-replace": "^1.4.0",
     "front-matter": "^4.0.2",
     "get-port": "^7.1.0",
     "globby": "^13.2.2",
-    "husky": "^8.0.3",
-    "lint-staged": "^14.0.1",
     "markdown-it": "^14.1.0",
     "markdown-it-attrs": "^4.3.0",
     "markdown-it-container": "^3.0.0",
@@ -70,8 +63,6 @@
     "pascal-case": "^3.1.2",
     "playwright": "^1.49.1",
     "plop": "^4.0.1",
-    "prettier": "^3.4.2",
-    "prettier-plugin-organize-imports": "^4.1.0",
     "prismjs": "^1.29.0",
     "react": "^18.2.0",
     "recursive-copy": "^2.0.14",
@@ -81,19 +72,5 @@
     "typescript": "^5.9.3",
     "user-agent-data-types": "^0.4.2",
     "uuid": "^9.0.1"
-  },
-  "overrides": {
-    "playwright": "^1.49.1",
-    "axe-core": "^4.11.4",
-    "esbuild": "$esbuild"
-  },
-  "lint-staged": {
-    "*.{ts,js}": [
-      "prettier --write"
-    ]
-  },
-  "allowScripts": {
-    "esbuild": true,
-    "rs-module-lexer": true
   }
 }

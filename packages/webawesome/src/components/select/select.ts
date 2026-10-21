@@ -1080,9 +1080,11 @@ export default class WaSelect extends WebAwesomeFormAssociatedElement {
               />
 
               <!-- Tags need to wait for first hydration before populating otherwise it will create a hydration mismatch. -->
-              ${this.multiple && this.hasUpdated
-                ? html`<div part="tags" class="tags" @wa-remove=${this.handleTagRemove}>${this.tags}</div>`
-                : ''}
+              ${
+                this.multiple && this.hasUpdated
+                  ? html`<div part="tags" class="tags" @wa-remove=${this.handleTagRemove}>${this.tags}</div>`
+                  : ''
+              }
 
               <input
                 class="value-input"
@@ -1095,22 +1097,24 @@ export default class WaSelect extends WebAwesomeFormAssociatedElement {
                 @focus=${() => this.focus()}
               />
 
-              ${hasClearIcon
-                ? html`
-                    <button
-                      part="clear-button"
-                      type="button"
-                      aria-label=${this.localize.term('clearEntry')}
-                      @mousedown=${this.handleClearMouseDown}
-                      @click=${this.handleClearClick}
-                      tabindex="-1"
-                    >
-                      <slot name="clear-icon">
-                        <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
-                      </slot>
-                    </button>
-                  `
-                : ''}
+              ${
+                hasClearIcon
+                  ? html`
+                      <button
+                        part="clear-button"
+                        type="button"
+                        aria-label=${this.localize.term('clearEntry')}
+                        @mousedown=${this.handleClearMouseDown}
+                        @click=${this.handleClearClick}
+                        tabindex="-1"
+                      >
+                        <slot name="clear-icon">
+                          <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
+                        </slot>
+                      </button>
+                    `
+                  : ''
+              }
 
               <slot name="end" part="end" class="end"></slot>
 

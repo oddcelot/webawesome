@@ -1,22 +1,37 @@
-import { format } from 'prettier';
-import defaultOptions from '../../prettier.config.js';
+import { fileURLToPath } from 'node:url';
+import { loadConfigFromFile } from 'vite';
+import { format } from 'vite-plus/fmt';
 
-/**
- * Formats a string of code using Prettier.
- *
- * @param {string} code - The code to format.
- * @param {*} options - Prettier options. Defaults are taken from the project's root config. See this page for more
- *   info: https://prettier.io/docs/en/options.html
- */
-export async function formatCode(string, options) {
-  return await format(string, {
-    ...defaultOptions,
-    ...options,
-  });
+const rootConfigFile = fileURLToPath(new URL('../../../../vite.config.ts', import.meta.url));
+let defaultOptions;
+
+async function getDefaultOptions() {
+  if (!defaultOptions) {
+    const loaded = await loadConfigFromFile({ command: 'build', mode: 'production' }, rootConfigFile);
+    const { ignorePatterns, ...options } = loaded?.config.fmt ?? {};
+    defaultOptions = options;
+  }
+  return defaultOptions;
 }
 
 /**
- * Eleventy plugin to format page HTML using Prettier.
+ * Formats a string of code using Oxfmt (the Vite+ formatter).
+ *
+ * @param {string} code - The code to format.
+ * @param {*} options - Oxfmt options plus `parser` (a file extension such as `html`, `css`, or `ts`). Defaults are
+ *   taken from the `fmt` block of the project's root vite.config.ts.
+ */
+export async function formatCode(string, options = {}) {
+  const { parser = 'html', ...rest } = options;
+  const result = await format(`code.${parser}`, string, { ...(await getDefaultOptions()), ...rest });
+  if (result.errors.length > 0) {
+    throw new Error(result.errors.map(error => error.message).join('\n'));
+  }
+  return result.code;
+}
+
+/**
+ * Eleventy plugin to format page HTML using Oxfmt.
  */
 export function formatCodePlugin(options = {}) {
   options = {

@@ -62,21 +62,23 @@ export default class WaTag extends WebAwesomeElement {
     return html`
       <slot part="content" class="content"></slot>
 
-      ${this.withRemove
-        ? html`
-            <wa-button
-              part="remove-button"
-              exportparts="base:remove-button__base"
-              class="remove"
-              appearance="plain"
-              size=${this.size}
-              @click=${this.handleRemoveClick}
-              tabindex="-1"
-            >
-              <wa-icon name="xmark" library="system" variant="solid" label=${this.localize.term('remove')}></wa-icon>
-            </wa-button>
-          `
-        : ''}
+      ${
+        this.withRemove
+          ? html`
+              <wa-button
+                part="remove-button"
+                exportparts="base:remove-button__base"
+                class="remove"
+                appearance="plain"
+                size=${this.size}
+                @click=${this.handleRemoveClick}
+                tabindex="-1"
+              >
+                <wa-icon name="xmark" library="system" variant="solid" label=${this.localize.term('remove')}></wa-icon>
+              </wa-button>
+            `
+          : ''
+      }
     `;
   }
 }

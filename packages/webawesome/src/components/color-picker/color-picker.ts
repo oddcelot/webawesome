@@ -1188,43 +1188,45 @@ export default class WaColorPicker extends WebAwesomeFormAssociatedElement {
               ></span>
             </div>
 
-            ${this.opacity
-              ? html`
-                  <div
-                    part="slider opacity-slider"
-                    class="alpha slider transparent-bg"
-                    @pointerdown="${this.handleAlphaDrag}"
-                    @touchmove=${this.handleTouchMove}
-                  >
+            ${
+              this.opacity
+                ? html`
                     <div
-                      class="alpha-gradient"
-                      style=${styleMap({
-                        backgroundImage: `linear-gradient(
+                      part="slider opacity-slider"
+                      class="alpha slider transparent-bg"
+                      @pointerdown="${this.handleAlphaDrag}"
+                      @touchmove=${this.handleTouchMove}
+                    >
+                      <div
+                        class="alpha-gradient"
+                        style=${styleMap({
+                          backgroundImage: `linear-gradient(
                           to right,
                           ${this.getHexString(this.hue, this.saturation, this.brightness, 0)} 0%,
                           ${this.getHexString(this.hue, this.saturation, this.brightness, 100)} 100%
                         )`,
-                      })}
-                    ></div>
-                    <span
-                      part="slider-handle opacity-slider-handle"
-                      class="slider-handle"
-                      style=${styleMap({
-                        left: `${this.alpha}%`,
-                        backgroundColor: this.getHexString(this.hue, this.saturation, this.brightness, this.alpha),
-                      })}
-                      role="slider"
-                      aria-label="alpha"
-                      aria-orientation="horizontal"
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                      aria-valuenow=${Math.round(this.alpha)}
-                      tabindex=${ifDefined(this.disabled ? undefined : '0')}
-                      @keydown=${this.handleAlphaKeyDown}
-                    ></span>
-                  </div>
-                `
-              : ''}
+                        })}
+                      ></div>
+                      <span
+                        part="slider-handle opacity-slider-handle"
+                        class="slider-handle"
+                        style=${styleMap({
+                          left: `${this.alpha}%`,
+                          backgroundColor: this.getHexString(this.hue, this.saturation, this.brightness, this.alpha),
+                        })}
+                        role="slider"
+                        aria-label="alpha"
+                        aria-orientation="horizontal"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow=${Math.round(this.alpha)}
+                        tabindex=${ifDefined(this.disabled ? undefined : '0')}
+                        @keydown=${this.handleAlphaKeyDown}
+                      ></span>
+                    </div>
+                  `
+                : ''
+            }
           </div>
 
           <button
@@ -1262,90 +1264,96 @@ export default class WaColorPicker extends WebAwesomeFormAssociatedElement {
           ></wa-input>
 
           <wa-button-group>
-            ${!this.withoutFormatToggle
-              ? html`
-                  <wa-button
-                    part="format-button"
-                    size="s"
-                    appearance="outlined"
-                    aria-label=${this.localize.term('toggleColorFormat')}
-                    exportparts="
+            ${
+              !this.withoutFormatToggle
+                ? html`
+                    <wa-button
+                      part="format-button"
+                      size="s"
+                      appearance="outlined"
+                      aria-label=${this.localize.term('toggleColorFormat')}
+                      exportparts="
                       base:format-button__base,
                       start:format-button__start,
                       label:format-button__label,
                       end:format-button__end,
                       caret:format-button__caret
                     "
-                    @click=${this.handleFormatToggle}
-                    @blur=${this.stopNestedEventPropagation}
-                    @focus=${this.stopNestedEventPropagation}
-                  >
-                    ${this.setLetterCase(this.format)}
-                  </wa-button>
-                `
-              : ''}
-            ${this.hasEyeDropper
-              ? html`
-                  <wa-button
-                    part="eyedropper-button"
-                    size="s"
-                    appearance="outlined"
-                    exportparts="
+                      @click=${this.handleFormatToggle}
+                      @blur=${this.stopNestedEventPropagation}
+                      @focus=${this.stopNestedEventPropagation}
+                    >
+                      ${this.setLetterCase(this.format)}
+                    </wa-button>
+                  `
+                : ''
+            }
+            ${
+              this.hasEyeDropper
+                ? html`
+                    <wa-button
+                      part="eyedropper-button"
+                      size="s"
+                      appearance="outlined"
+                      exportparts="
                       base:eyedropper-button__base,
                       start:eyedropper-button__start,
                       label:eyedropper-button__label,
                       end:eyedropper-button__end,
                       caret:eyedropper-button__caret
                     "
-                    @click=${this.handleEyeDropper}
-                    @blur=${this.stopNestedEventPropagation}
-                    @focus=${this.stopNestedEventPropagation}
-                  >
-                    <wa-icon
-                      library="system"
-                      name="eyedropper"
-                      variant="solid"
-                      label=${this.localize.term('selectAColorFromTheScreen')}
-                    ></wa-icon>
-                  </wa-button>
-                `
-              : ''}
+                      @click=${this.handleEyeDropper}
+                      @blur=${this.stopNestedEventPropagation}
+                      @focus=${this.stopNestedEventPropagation}
+                    >
+                      <wa-icon
+                        library="system"
+                        name="eyedropper"
+                        variant="solid"
+                        label=${this.localize.term('selectAColorFromTheScreen')}
+                      ></wa-icon>
+                    </wa-button>
+                  `
+                : ''
+            }
           </wa-button-group>
         </div>
 
-        ${normalizedSwatches.length > 0
-          ? html`
-              <div part="swatches" class="swatches">
-                ${normalizedSwatches.map(swatch => {
-                  const parsedColor = this.parseColor(swatch.color);
+        ${
+          normalizedSwatches.length > 0
+            ? html`
+                <div part="swatches" class="swatches">
+                  ${normalizedSwatches.map(swatch => {
+                    const parsedColor = this.parseColor(swatch.color);
 
-                  // If we can't parse it, skip it
-                  if (!parsedColor) {
-                    return '';
-                  }
+                    // If we can't parse it, skip it
+                    if (!parsedColor) {
+                      return '';
+                    }
 
-                  return html`
-                    <div
-                      part="swatch"
-                      class="swatch transparent-bg"
-                      tabindex=${ifDefined(this.disabled ? undefined : '0')}
-                      role="button"
-                      aria-label=${swatch.label}
-                      @click=${() => this.selectSwatch(swatch.color)}
-                      @keydown=${(event: KeyboardEvent) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          this.selectSwatch(swatch.color);
-                        }
-                      }}
-                    >
-                      <div class="swatch-color" style=${styleMap({ backgroundColor: parsedColor.hexa })}></div>
-                    </div>
-                  `;
-                })}
-              </div>
-            `
-          : ''}
+                    return html`
+                      <div
+                        part="swatch"
+                        class="swatch transparent-bg"
+                        tabindex=${ifDefined(this.disabled ? undefined : '0')}
+                        role="button"
+                        aria-label=${swatch.label}
+                        @click=${() => this.selectSwatch(swatch.color)}
+                        @keydown=${(event: KeyboardEvent) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            this.selectSwatch(swatch.color);
+                          }
+                        }}
+                      >
+                        <div class="swatch-color" style=${styleMap({ backgroundColor: parsedColor.hexa })}></div>
+                      </div>
+                    `;
+                  })}
+                </div>
+              `
+            : ''
+        }
       </div>
     `;
 

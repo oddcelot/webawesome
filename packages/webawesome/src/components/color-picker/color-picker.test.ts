@@ -1,7 +1,7 @@
 import { aTimeout, expect, oneEvent, waitUntil } from '@open-wc/testing';
-import { sendKeys } from '@web/test-runner-commands';
 import { html } from 'lit';
 import sinon from 'sinon';
+import { sendKeys } from '../../internal/test/commands.js';
 import { fixtures } from '../../internal/test/fixture.js';
 import { clickOnElement, dragElement } from '../../internal/test/pointer-utilities.js';
 import { serialize } from '../../utilities/form.js';

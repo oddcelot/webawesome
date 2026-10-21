@@ -315,13 +315,15 @@ export default class WaStepper extends WebAwesomeElement {
   render() {
     const label = this.label || this.localize.term('steps');
     const body = html`
-      ${this.stepCount > 0
-        ? html`
-            <span part="summary" class="wa-visually-hidden">
-              ${this.localize.term('stepXOfY', this.activeIndex + 1, this.stepCount)}
-            </span>
-          `
-        : ''}
+      ${
+        this.stepCount > 0
+          ? html`
+              <span part="summary" class="wa-visually-hidden">
+                ${this.localize.term('stepXOfY', this.activeIndex + 1, this.stepCount)}
+              </span>
+            `
+          : ''
+      }
       <ol part="steps" class="steps" role="list">
         <slot @slotchange=${this.handleSlotChange}></slot>
       </ol>

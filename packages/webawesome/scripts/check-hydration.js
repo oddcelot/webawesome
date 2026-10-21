@@ -1,3 +1,6 @@
+import { basename, dirname } from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 /**
  * Crawls every component docs page in SSR mode and fails if any page emits a
  * `lit-hydration-error` event (dispatched by WebAwesomeElement when a component
@@ -14,9 +17,6 @@
  * Exits non-zero if any page hydrated with an error.
  */
 import { globby } from 'globby';
-import { basename, dirname } from 'node:path';
-import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

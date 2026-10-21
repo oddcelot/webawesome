@@ -5,3 +5,4 @@ src/react
 
 # Claude Code local per-user settings
 .claude/settings.local.json
+.vitest

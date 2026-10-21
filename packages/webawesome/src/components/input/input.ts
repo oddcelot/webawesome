@@ -370,7 +370,7 @@ export default class WaInput extends WebAwesomeFormAssociatedElement {
     this.value = null;
 
     if (this.input) {
-      // Fixes https://github.com/shoelace-style/webawesome/issues/1640 where resetting an input would leave the "live" vlaue in place on the input in the shadow dom. This fixed that by manually forcing the value.
+      // Fixes https://github.com/shoelace-style/webawesome/issues/1640 where resetting an input would leave the "live" value in place on the input in the shadow dom. This fixed that by manually forcing the value.
       // @ts-expect-error
       this.input.value = this.value;
     }
@@ -437,45 +437,51 @@ export default class WaInput extends WebAwesomeFormAssociatedElement {
           @keydown=${this.handleKeyDown}
         />
 
-        ${isClearIconVisible
-          ? html`
-              <button
-                part="clear-button"
-                class="clear"
-                type="button"
-                aria-label=${this.localize.term('clearEntry')}
-                @click=${this.handleClearClick}
-                tabindex="-1"
-              >
-                <slot name="clear-icon">
-                  <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
-                </slot>
-              </button>
-            `
-          : ''}
-        ${this.passwordToggle && !this.disabled
-          ? html`
-              <button
-                part="password-toggle-button"
-                class="password-toggle"
-                type="button"
-                aria-label=${this.localize.term(this.passwordVisible ? 'hidePassword' : 'showPassword')}
-                @click=${this.handlePasswordToggle}
-              >
-                ${!this.passwordVisible
-                  ? html`
-                      <slot name="show-password-icon">
-                        <wa-icon name="eye" library="system" variant="regular"></wa-icon>
-                      </slot>
-                    `
-                  : html`
-                      <slot name="hide-password-icon">
-                        <wa-icon name="eye-slash" library="system" variant="regular"></wa-icon>
-                      </slot>
-                    `}
-              </button>
-            `
-          : ''}
+        ${
+          isClearIconVisible
+            ? html`
+                <button
+                  part="clear-button"
+                  class="clear"
+                  type="button"
+                  aria-label=${this.localize.term('clearEntry')}
+                  @click=${this.handleClearClick}
+                  tabindex="-1"
+                >
+                  <slot name="clear-icon">
+                    <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
+                  </slot>
+                </button>
+              `
+            : ''
+        }
+        ${
+          this.passwordToggle && !this.disabled
+            ? html`
+                <button
+                  part="password-toggle-button"
+                  class="password-toggle"
+                  type="button"
+                  aria-label=${this.localize.term(this.passwordVisible ? 'hidePassword' : 'showPassword')}
+                  @click=${this.handlePasswordToggle}
+                >
+                  ${
+                    !this.passwordVisible
+                      ? html`
+                          <slot name="show-password-icon">
+                            <wa-icon name="eye" library="system" variant="regular"></wa-icon>
+                          </slot>
+                        `
+                      : html`
+                          <slot name="hide-password-icon">
+                            <wa-icon name="eye-slash" library="system" variant="regular"></wa-icon>
+                          </slot>
+                        `
+                  }
+                </button>
+              `
+            : ''
+        }
 
         <slot name="end" part="end" class="end"></slot>
       </div>

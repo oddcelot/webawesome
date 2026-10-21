@@ -407,23 +407,25 @@ export default class WaCopyButton extends WebAwesomeElement {
           </slot>
         </button>
 
-        ${showTooltip
-          ? html`
-              <wa-tooltip
-                part="feedback"
-                for="copy-button"
-                placement=${this.tooltipPlacement}
-                trigger=${triggerValue}
-                class=${classMap({
-                  'copy-button-tooltip': true,
-                  'copy-button-tooltip-success': this.status === 'success',
-                  'copy-button-tooltip-error': this.status === 'error',
-                })}
-                ?disabled=${this.disabled}
-                >${this.currentLabel}</wa-tooltip
-              >
-            `
-          : ''}
+        ${
+          showTooltip
+            ? html`
+                <wa-tooltip
+                  part="feedback"
+                  for="copy-button"
+                  placement=${this.tooltipPlacement}
+                  trigger=${triggerValue}
+                  class=${classMap({
+                    'copy-button-tooltip': true,
+                    'copy-button-tooltip-success': this.status === 'success',
+                    'copy-button-tooltip-error': this.status === 'error',
+                  })}
+                  ?disabled=${this.disabled}
+                  >${this.currentLabel}</wa-tooltip
+                >
+              `
+            : ''
+        }
         <slot name="${INTERNAL_TOOLTIP_SLOT}"></slot>
       </div>
     `;

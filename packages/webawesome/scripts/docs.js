@@ -1,10 +1,8 @@
+import { join } from 'path';
 import Eleventy from '@11ty/eleventy';
-
-import copy from 'recursive-copy';
-
 import chalk from 'chalk';
 import { deleteAsync } from 'del';
-import { join } from 'path';
+import copy from 'recursive-copy';
 import { formatError, getCdnDir, getDocsDir, getEleventyConfigPath, getSiteDir } from './utils.js';
 
 let eleventyBuildResolver;
@@ -96,7 +94,7 @@ export async function generateDocs(options = {}) {
     return originalFn;
   }
 
-  // Works around a bug in 11ty where it still prints warnings despite the logger being overriden and in quietMode.
+  // Works around a bug in 11ty where it still prints warnings despite the logger being overridden and in quietMode.
   const originalWarn = stubConsole('warn');
   const restoreConsole = () => {
     console.warn = originalWarn;
@@ -176,7 +174,7 @@ export async function generateDocs(options = {}) {
  * Much of this code is taken from 11ty's ConsoleLogger here:
  * https://github.com/11ty/eleventy/blob/main/src/Util/ConsoleLogger.js
  *
- * Patches 11ty logger so it doesnt log everything, but we can still use its output for our own build.
+ * Patches 11ty logger so it doesn't log everything, but we can still use its output for our own build.
  * @typedef {'error'|'log'|'warn'|'info'} LogType
  */
 class CustomLogger {
@@ -264,7 +262,7 @@ class CustomLogger {
    *
    * @param {string} message - The raw message to log.
    * @param {LogType} [type='log'] - The error level to log.
-   * @param {string|undefined} [chalkColor=undefined] - Color name or falsy to disable
+   * @param {string} [chalkColor=undefined] - Color name or falsy to disable
    * @param {boolean} [forceToConsole=false] - Enforce a log on console instead of specified target.
    */
   message(message, type = 'log', chalkColor = undefined, _forceToConsole = false, prefix = '') {

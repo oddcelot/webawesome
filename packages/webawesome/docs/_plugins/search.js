@@ -1,10 +1,10 @@
 /* eslint-disable no-invalid-this */
 import { readFileSync } from 'fs';
 import { mkdir, writeFile } from 'fs/promises';
-import MiniSearch from 'minisearch';
-import { parse } from 'node-html-parser';
 import * as path from 'path';
 import { dirname, join } from 'path';
+import MiniSearch from 'minisearch';
+import { parse } from 'node-html-parser';
 
 function collapseWhitespace(string) {
   return string.replace(/\s+/g, ' ');

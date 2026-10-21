@@ -1,9 +1,9 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { parse } from 'node-html-parser';
-import path from 'path';
 import TurndownService from 'turndown';
-import { fileURLToPath } from 'url';
 import { getAllComponents } from './shared.js';
 import { getCdnDir, getDistDir, getDocsDir, getSiteDir } from './utils.js';
 

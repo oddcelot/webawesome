@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { sendKeys } from '@web/test-runner-commands';
 import { html } from 'lit';
+import { sendKeys } from '../../internal/test/commands.js';
 import { expectEvent } from '../../internal/test/expect-event.js';
 import { fixtures } from '../../internal/test/fixture.js';
 import type WaComparison from './comparison.js';

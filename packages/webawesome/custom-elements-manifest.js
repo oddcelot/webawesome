@@ -1,3 +1,6 @@
+import fs from 'fs';
+import * as path from 'node:path';
+import * as url from 'url';
 import { cemInheritancePlugin } from '@wc-toolkit/cem-inheritance';
 import { cemValidatorPlugin } from '@wc-toolkit/cem-validator';
 import { jsxTypesPlugin } from '@wc-toolkit/jsx-types';
@@ -7,10 +10,7 @@ import { customElementJetBrainsPlugin } from 'custom-element-jet-brains-integrat
 import { customElementSveltePlugin } from 'custom-element-svelte-integration';
 import { customElementVsCodePlugin } from 'custom-element-vs-code-integration';
 import { customElementVuejsPlugin } from 'custom-element-vuejs-integration';
-import fs from 'fs';
-import * as path from 'node:path';
 import { pascalCase } from 'pascal-case';
-import * as url from 'url';
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const packageData = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));

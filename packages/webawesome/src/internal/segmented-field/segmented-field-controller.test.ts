@@ -197,7 +197,7 @@ describe('SegmentedFieldController', () => {
       getSegment(el, 'a').focus();
       press(getSegment(el, 'a'), '5');
       expect(el.values.single.a).to.equal(5);
-      expect(el.commitLog.at(-1)).to.deep.equal({ group: 'single', field: 'a', value: 5 });
+      expect(el.commitLog[el.commitLog.length - 1]).to.deep.equal({ group: 'single', field: 'a', value: 5 });
     });
 
     it('advances focus to the next segment when result.advance is true', async () => {
@@ -249,7 +249,7 @@ describe('SegmentedFieldController', () => {
       getSegment(el, 'a').focus();
       press(getSegment(el, 'a'), 'ArrowUp');
       expect(el.values.single.a).to.equal(4);
-      expect(el.commitLog.at(-1)).to.deep.equal({ group: 'single', field: 'a', value: 4 });
+      expect(el.commitLog[el.commitLog.length - 1]).to.deep.equal({ group: 'single', field: 'a', value: 4 });
     });
 
     it('calls rules.step on Arrow Down', async () => {
@@ -402,7 +402,7 @@ describe('SegmentedFieldController', () => {
       getSegment(el, 'a').focus();
       press(getSegment(el, 'a'), 'Backspace');
       expect(el.values.single.a).to.equal(null);
-      expect(el.commitLog.at(-1)).to.deep.equal({ group: 'single', field: 'a', value: null });
+      expect(el.commitLog[el.commitLog.length - 1]).to.deep.equal({ group: 'single', field: 'a', value: null });
     });
 
     it('Backspace on an already-empty segment jumps to the previous segment', async () => {

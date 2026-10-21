@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises';
+import { basename, dirname } from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 /**
  * Fails when a component doc flags an anatomy example the diagram can't use — the flagged block doesn't
  * contain the component's tag (the clone falls back), the page has no diagram (`hasAnatomy: false` / a
@@ -6,10 +10,6 @@
  * Static analysis, no build.
  */
 import { globby } from 'globby';
-import { readFile } from 'node:fs/promises';
-import { basename, dirname } from 'node:path';
-import process from 'node:process';
-import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = dirname(__dirname);

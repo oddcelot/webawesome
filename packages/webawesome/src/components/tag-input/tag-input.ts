@@ -734,53 +734,57 @@ export default class WaTagInput extends WebAwesomeFormAssociatedElement {
       >
         <slot name="start" part="start" class="start"></slot>
 
-        ${tags.length > 0
-          ? html`
-              ${this.readonly
-                ? ''
-                : html`
-                    <span id="tag-help" class="wa-visually-hidden-force">
-                      ${this.localize.term('tagInputKeyboardHelp')}
-                    </span>
-                  `}
-              <div
-                part="tags"
-                class="tags"
-                role="list"
-                aria-labelledby="label"
-                @keydown=${this.handleTagKeyDown}
-                @click=${this.handleTagClick}
-                @focusin=${this.handleTagFocusIn}
-                @focusout=${this.handleTagFocusOut}
-                @wa-remove=${this.handleTagRemove}
-              >
-                ${tags.map(
-                  (tag, index) => html`
-                    <wa-tag
-                      part="tag"
-                      class=${classMap({
-                        tag: true,
-                        'tag--focused': this.focusedTagIndex === index,
-                      })}
-                      exportparts="
+        ${
+          tags.length > 0
+            ? html`
+                ${
+                  this.readonly
+                    ? ''
+                    : html`
+                        <span id="tag-help" class="wa-visually-hidden-force">
+                          ${this.localize.term('tagInputKeyboardHelp')}
+                        </span>
+                      `
+                }
+                <div
+                  part="tags"
+                  class="tags"
+                  role="list"
+                  aria-labelledby="label"
+                  @keydown=${this.handleTagKeyDown}
+                  @click=${this.handleTagClick}
+                  @focusin=${this.handleTagFocusIn}
+                  @focusout=${this.handleTagFocusOut}
+                  @wa-remove=${this.handleTagRemove}
+                >
+                  ${tags.map(
+                    (tag, index) => html`
+                      <wa-tag
+                        part="tag"
+                        class=${classMap({
+                          tag: true,
+                          'tag--focused': this.focusedTagIndex === index,
+                        })}
+                        exportparts="
                         content:tag__content,
                         remove-button:tag__remove-button,
                         remove-button__base:tag__remove-button__base
                       "
-                      role="listitem"
-                      tabindex="-1"
-                      aria-describedby=${ifDefined(this.readonly ? undefined : 'tag-help')}
-                      size=${this.size}
-                      ?pill=${this.pill}
-                      ?with-remove=${!this.readonly}
-                      data-index=${index}
-                      >${tag}</wa-tag
-                    >
-                  `,
-                )}
-              </div>
-            `
-          : ''}
+                        role="listitem"
+                        tabindex="-1"
+                        aria-describedby=${ifDefined(this.readonly ? undefined : 'tag-help')}
+                        size=${this.size}
+                        ?pill=${this.pill}
+                        ?with-remove=${!this.readonly}
+                        data-index=${index}
+                        >${tag}</wa-tag
+                      >
+                    `,
+                  )}
+                </div>
+              `
+            : ''
+        }
 
         <input
           part="input"
@@ -806,23 +810,25 @@ export default class WaTagInput extends WebAwesomeFormAssociatedElement {
           @blur=${this.handleInputBlur}
         />
 
-        ${isClearVisible
-          ? html`
-              <button
-                part="clear-button"
-                class="clear"
-                type="button"
-                tabindex="-1"
-                aria-label=${this.localize.term('clearEntry')}
-                @mousedown=${this.handleClearMouseDown}
-                @click=${this.handleClearClick}
-              >
-                <slot name="clear-icon">
-                  <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
-                </slot>
-              </button>
-            `
-          : ''}
+        ${
+          isClearVisible
+            ? html`
+                <button
+                  part="clear-button"
+                  class="clear"
+                  type="button"
+                  tabindex="-1"
+                  aria-label=${this.localize.term('clearEntry')}
+                  @mousedown=${this.handleClearMouseDown}
+                  @click=${this.handleClearClick}
+                >
+                  <slot name="clear-icon">
+                    <wa-icon name="circle-xmark" library="system" variant="regular"></wa-icon>
+                  </slot>
+                </button>
+              `
+            : ''
+        }
 
         <slot name="end" part="end" class="end"></slot>
       </div>

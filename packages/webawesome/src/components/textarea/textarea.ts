@@ -492,12 +492,14 @@ export default class WaTextarea extends WebAwesomeFormAssociatedElement {
       >
         <slot id="hint" name="hint" class="hint" aria-hidden=${hasHint ? 'false' : 'true'}>${this.hint}</slot>
 
-        ${this.withCount
-          ? html`
-              <div part="count" class="count" aria-hidden="true">${countText}</div>
-              <div class="wa-visually-hidden-force" aria-live="polite">${this.announcedCountText}</div>
-            `
-          : ''}
+        ${
+          this.withCount
+            ? html`
+                <div part="count" class="count" aria-hidden="true">${countText}</div>
+                <div class="wa-visually-hidden-force" aria-live="polite">${this.announcedCountText}</div>
+              `
+            : ''
+        }
       </div>
     `;
   }

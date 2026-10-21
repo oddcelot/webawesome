@@ -1,5 +1,4 @@
 import '../../internal/scrollend-polyfill.js';
-
 import type { PropertyValueMap, PropertyValues } from 'lit';
 import { html, isServer } from 'lit';
 import { customElement, eventOptions, property, query, state } from 'lit/decorators.js';
@@ -675,77 +674,81 @@ export default class WaCarousel extends WebAwesomeElement {
           <slot @slotchange=${() => this.requestUpdate()}></slot>
         </div>
 
-        ${this.navigation
-          ? html`
-              <div part="navigation" class="navigation">
-                <button
-                  part="navigation-button navigation-button-previous"
-                  class="${classMap({
-                    'navigation-button': true,
-                    'navigation-button-previous': true,
-                    'navigation-button-disabled': !prevEnabled,
-                  })}"
-                  aria-label="${this.localize.term('previousSlide')}"
-                  aria-controls="scroll-container"
-                  aria-disabled="${prevEnabled ? 'false' : 'true'}"
-                  @click=${prevEnabled ? () => this.previous() : null}
-                >
-                  <slot name="previous-icon">
-                    <wa-icon library="system" name="${isRTL ? 'chevron-right' : 'chevron-left'}"></wa-icon>
-                  </slot>
-                </button>
+        ${
+          this.navigation
+            ? html`
+                <div part="navigation" class="navigation">
+                  <button
+                    part="navigation-button navigation-button-previous"
+                    class="${classMap({
+                      'navigation-button': true,
+                      'navigation-button-previous': true,
+                      'navigation-button-disabled': !prevEnabled,
+                    })}"
+                    aria-label="${this.localize.term('previousSlide')}"
+                    aria-controls="scroll-container"
+                    aria-disabled="${prevEnabled ? 'false' : 'true'}"
+                    @click=${prevEnabled ? () => this.previous() : null}
+                  >
+                    <slot name="previous-icon">
+                      <wa-icon library="system" name="${isRTL ? 'chevron-right' : 'chevron-left'}"></wa-icon>
+                    </slot>
+                  </button>
 
-                <button
-                  part="navigation-button navigation-button-next"
-                  class=${classMap({
-                    'navigation-button': true,
-                    'navigation-button-next': true,
-                    'navigation-button-disabled': !nextEnabled,
-                  })}
-                  aria-label="${this.localize.term('nextSlide')}"
+                  <button
+                    part="navigation-button navigation-button-next"
+                    class=${classMap({
+                      'navigation-button': true,
+                      'navigation-button-next': true,
+                      'navigation-button-disabled': !nextEnabled,
+                    })}
+                    aria-label="${this.localize.term('nextSlide')}"
+                    aria-controls="scroll-container"
+                    aria-disabled="${nextEnabled ? 'false' : 'true'}"
+                    @click=${nextEnabled ? () => this.next() : null}
+                  >
+                    <slot name="next-icon">
+                      <wa-icon library="system" name="${isRTL ? 'chevron-left' : 'chevron-right'}"></wa-icon>
+                    </slot>
+                  </button>
+                </div>
+              `
+            : ''
+        }
+        ${
+          this.pagination
+            ? html`
+                <div
+                  part="pagination"
+                  role="tablist"
+                  class="${classMap({
+                    pagination: true,
+                    'pagination-awaiting-position': this.awaitingInitialPosition,
+                  })}"
                   aria-controls="scroll-container"
-                  aria-disabled="${nextEnabled ? 'false' : 'true'}"
-                  @click=${nextEnabled ? () => this.next() : null}
                 >
-                  <slot name="next-icon">
-                    <wa-icon library="system" name="${isRTL ? 'chevron-left' : 'chevron-right'}"></wa-icon>
-                  </slot>
-                </button>
-              </div>
-            `
-          : ''}
-        ${this.pagination
-          ? html`
-              <div
-                part="pagination"
-                role="tablist"
-                class="${classMap({
-                  pagination: true,
-                  'pagination-awaiting-position': this.awaitingInitialPosition,
-                })}"
-                aria-controls="scroll-container"
-              >
-                ${map(range(pagesCount), index => {
-                  const isActive = index === currentPage;
-                  return html`
-                    <button
-                      part="pagination-item ${isActive ? 'pagination-item-active' : ''}"
-                      class="${classMap({
-                        'pagination-item': true,
-                        'pagination-item-active': isActive,
-                      })}"
-                      role="tab"
-                      aria-selected="${isActive ? 'true' : 'false'}"
-                      aria-label="${this.localize.term('goToSlide', index + 1, pagesCount)}"
-                      tabindex=${isActive ? '0' : '-1'}
-                      @click=${() => this.goToSlide(index * slidesPerMove)}
-                      @keydown=${this.handleKeyDown}
-                    ></button>
-                  `;
-                })}
-              </div>
-            `
-          : html``}
+                  ${map(range(pagesCount), index => {
+                    const isActive = index === currentPage;
+                    return html`
+                      <button
+                        part="pagination-item ${isActive ? 'pagination-item-active' : ''}"
+                        class="${classMap({
+                          'pagination-item': true,
+                          'pagination-item-active': isActive,
+                        })}"
+                        role="tab"
+                        aria-selected="${isActive ? 'true' : 'false'}"
+                        aria-label="${this.localize.term('goToSlide', index + 1, pagesCount)}"
+                        tabindex=${isActive ? '0' : '-1'}
+                        @click=${() => this.goToSlide(index * slidesPerMove)}
+                        @keydown=${this.handleKeyDown}
+                      ></button>
+                    `;
+                  })}
+                </div>
+              `
+            : html``
+        }
       </div>
     `;
   }
