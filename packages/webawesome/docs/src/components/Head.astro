@@ -16,6 +16,14 @@ const loadProComponents = loadProComponentsSource.replace('__VERSION__', package
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content={data.description} />
+
+<script is:inline>
+  // The Font Awesome kit only allows known domains, so StackBlitz previews get a 403 for every icon. Drop the kit code
+  // there so icons come from the free CDN instead.
+  if (location.hostname.endsWith('.webcontainer.io')) {
+    document.documentElement.removeAttribute('data-fa-kit-code');
+  }
+</script>
 {data.noindex && <meta name="robots" content="noindex" />}
 
 <title>{data.pageTitle}</title>

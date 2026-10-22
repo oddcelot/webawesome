@@ -8,6 +8,13 @@ import * as themer from '../../../../_data/themer.js';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Web Awesome: Theme Showcase</title>
 
+    <script is:inline>
+      // See Head.astro: the Font Awesome kit rejects StackBlitz previews, so fall back to the free CDN there
+      if (location.hostname.endsWith('.webcontainer.io')) {
+        document.documentElement.removeAttribute('data-fa-kit-code');
+      }
+    </script>
+
     <!-- Web Awesome -->
     <link rel="stylesheet" href="/dist/styles/webawesome.css" />
 
