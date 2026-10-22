@@ -40,4 +40,7 @@ jobs:
 
       - name: Check docs pages for hydration errors
         run: vp run test:hydration
+        env:
+          # The dev server does a full build before it listens; give slow runners room.
+          SERVER_TIMEOUT_MS: '600000'
         working-directory: ./packages/webawesome
