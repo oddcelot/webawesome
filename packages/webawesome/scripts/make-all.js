@@ -38,5 +38,10 @@ const text = preamble + '\n' + index.join('\n') + '\n';
 
 fs.writeFileSync(allFile, text, 'utf8');
 
-// Format with Vite+ (config comes from the root vite.config.ts `fmt` block)
-execFileSync('vp', ['fmt', allFile], { stdio: 'inherit', env: process.env });
+// Format with Vite+ (config comes from the root vite.config.ts `fmt` block). The `vp` binary is native, so it's missing
+// where only JS runs (StackBlitz); the file still works unformatted there.
+try {
+  execFileSync('vp', ['fmt', allFile], { stdio: 'inherit', env: process.env });
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
