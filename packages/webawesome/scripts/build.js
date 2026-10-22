@@ -305,7 +305,8 @@ export async function build(options = {}) {
 
     spinner.start('Launching the dev server');
 
-    const port = await getPort({ port: portNumbers(4000, 4999) });
+    const preferredPort = Number(process.env.PORT) || 4000;
+    const port = await getPort({ port: [preferredPort, ...portNumbers(4000, 4999)] });
     const devServer = await startDocsDevServer({ port });
     const url = devServer.url;
 

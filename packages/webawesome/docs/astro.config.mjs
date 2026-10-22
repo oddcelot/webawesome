@@ -48,6 +48,22 @@ function getLibraryDependencies() {
   return [...specifiers].sort((a, b) => a.localeCompare(b));
 }
 
+/**
+ * Tabs left open from the old Eleventy dev server keep polling browser-sync on the same port. Answer them here so they
+ * don't hit the `[...slug]` route and log a router warning every second.
+ */
+function ignoreBrowserSync() {
+  return {
+    name: 'wa-ignore-browser-sync',
+    configureServer(server) {
+      server.middlewares.use('/browser-sync', (_req, res) => {
+        res.statusCode = 410;
+        res.end();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   srcDir: './src',
   publicDir: './public',
@@ -76,7 +92,7 @@ export default defineConfig({
     }),
   },
   // In dev the library is served from source (src/dev-source.js); this gives its components Lit HMR
-  vite: { plugins: [litPlugin()], optimizeDeps: { include: getLibraryDependencies() } },
+  vite: { plugins: [litPlugin(), ignoreBrowserSync()], optimizeDeps: { include: getLibraryDependencies() } },
   cacheDir: process.env.ASTRO_CACHE_DIR || './node_modules/.astro',
   integrations: [mdx(), docsIntegration()],
 });
