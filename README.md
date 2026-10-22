@@ -76,7 +76,7 @@ This starts the Vite+ dev server (`vp dev`) for `index.html`, with hot module re
 
 To work on the docs site instead, run `npm run start:docs`. After the initial build, a browser will open automatically and most changes to the source will reload it.
 
-To edit the docs without installing anything, [open the repo in StackBlitz](https://stackblitz.com/github/shoelace-style/webawesome/tree/next?file=packages%2Fwebawesome%2Fsrc%2Fcomponents%2Fbutton%2Fbutton.ts). It installs dependencies and starts the docs dev server in the browser.
+To edit the docs without installing anything, [open the repo in StackBlitz](https://stackblitz.com/github/shoelace-style/webawesome/tree/next?file=packages%2Fwebawesome%2Fsrc%2Fcomponents%2Fbutton%2Fbutton.ts%3AL335&initialpath=%2Fdocs%2Fcomponents%2Fbutton%2F). It installs dependencies and starts the docs dev server in the browser.
 
 ### Building
 
