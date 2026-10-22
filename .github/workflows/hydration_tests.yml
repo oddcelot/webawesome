@@ -34,8 +34,10 @@ jobs:
 
       # `vp run start:docs` builds, then serves with SSR on port 4000 and stays alive in
       # watch mode. Background it; check-hydration.js waits for it to come up.
+      # Log to a file: once this step ends nothing reads its stdout, and the server can block writing to it
+      # before it starts listening.
       - name: Start dev server
-        run: vp run start:docs &
+        run: vp run start:docs > "$RUNNER_TEMP/docs-server.log" 2>&1 &
         working-directory: ./packages/webawesome
 
       - name: Check docs pages for hydration errors
@@ -44,3 +46,7 @@ jobs:
           # The dev server does a full build before it listens; give slow runners room.
           SERVER_TIMEOUT_MS: '600000'
         working-directory: ./packages/webawesome
+
+      - name: Dev server log
+        if: always()
+        run: tail -n 100 "$RUNNER_TEMP/docs-server.log" || true
