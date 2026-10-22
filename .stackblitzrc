@@ -1,4 +1,4 @@
 {
   "installDependencies": false,
-  "startCommand": "pnpm install --ignore-scripts && cd packages/webawesome && node scripts/build.js --develop --no-open"
+  "startCommand": "pnpm install --ignore-scripts && cd packages/webawesome && (node scripts/build.js --develop --no-open || node scripts/build.js --develop --no-open)"
 }
