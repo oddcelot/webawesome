@@ -552,39 +552,44 @@ export async function build(options = {}) {
               await generateStyles();
             }
 
-            // Regenerate metadata when components change
-            if (isComponent && !filename.endsWith('.styles.ts')) {
-              await generateManifest();
-            }
-
             // copy everything to unbundled before we generate bundles.
             // this may cause watcher events to break. if things are broken with file watching, comment this out.
             await copy(getCdnDir(), getDistDir(), {
               overwrite: true,
               filter: file => file !== 'custom-elements.json',
             });
-
-            // The docs only depend on src through the manifest
-            const cdnManifest = join(getCdnDir(), 'custom-elements.json');
-            const distManifest = join(getDistDir(), 'custom-elements.json');
-            const manifestChanged = readCanonicalManifest(cdnManifest) !== readCanonicalManifest(distManifest);
-            const since = Date.now();
-            if (manifestChanged) {
-              await copy(cdnManifest, distManifest, { overwrite: true });
-            }
-
             await regenerateBundle();
             await initLitSsr(); // Reload components SSR definitions.
+            reload();
 
-            if (manifestChanged) {
-              await generateDocs({ spinner, since });
+            let docsChanged = false;
+            if (isComponent && !filename.endsWith('.styles.ts')) {
+              await generateManifest();
+              await copy(getCdnDir(), getDistDir(), {
+                overwrite: true,
+                filter: file =>
+                  file !== 'custom-elements.json' && (file.startsWith('types') || /^[^/]+\.(json|d\.ts)$/.test(file)),
+              });
+
+              // The docs only depend on src through the manifest
+              const cdnManifest = join(getCdnDir(), 'custom-elements.json');
+              const distManifest = join(getDistDir(), 'custom-elements.json');
+              if (readCanonicalManifest(cdnManifest) !== readCanonicalManifest(distManifest)) {
+                const since = Date.now();
+                await copy(cdnManifest, distManifest, { overwrite: true });
+                await generateDocs({ spinner, since });
+                docsChanged = true;
+              }
             }
 
             if (typeof options.afterWatchEvent === 'function') {
               await options.afterWatchEvent(evt, filename);
+              docsChanged = true;
             }
 
-            reload();
+            if (docsChanged) {
+              reload();
+            }
           } catch (err) {
             console.error(chalk.red(formatError(err)));
 
