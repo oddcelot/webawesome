@@ -527,11 +527,13 @@ export async function build(options = {}) {
             // copy everything to unbundled before we generate bundles.
             // this may cause watcher events to break. if things are broken with file watching, comment this out.
             await copy(getCdnDir(), getDistDir(), { overwrite: true });
+            // 11ty picks up the copied manifest on its own in incremental mode
+            const since = Date.now();
             await regenerateBundle();
             await initLitSsr(); // Reload components SSR definitions.
 
             // This needs to be outside of "isComponent" check because SSR needs to run on CSS files too.
-            await generateDocs({ spinner });
+            await generateDocs({ spinner, since });
 
             if (typeof options.afterWatchEvent === 'function') {
               await options.afterWatchEvent(evt, filename);
