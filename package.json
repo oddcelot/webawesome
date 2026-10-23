@@ -13,6 +13,7 @@
   "scripts": {
     "check-updates": "npx npm-check-updates --interactive --format group",
     "start": "cd packages/webawesome && npm run start",
+    "dev": "cd packages/webawesome && npm run dev",
     "build": "cd packages/webawesome && npm run build",
     "start:pro": "cd packages/webawesome-pro && npm run start",
     "build:pro": "cd packages/webawesome-pro && npm run build"
