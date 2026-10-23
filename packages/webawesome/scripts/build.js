@@ -520,20 +520,32 @@ export async function build(options = {}) {
             }
 
             // Regenerate metadata when components change
-            if (isComponent) {
+            if (isComponent && !filename.endsWith('.styles.ts')) {
               await generateManifest();
             }
 
             // copy everything to unbundled before we generate bundles.
             // this may cause watcher events to break. if things are broken with file watching, comment this out.
-            await copy(getCdnDir(), getDistDir(), { overwrite: true });
-            // 11ty picks up the copied manifest on its own in incremental mode
+            await copy(getCdnDir(), getDistDir(), {
+              overwrite: true,
+              filter: file => file !== 'custom-elements.json',
+            });
+
+            // The docs only depend on src through the manifest
+            const cdnManifest = join(getCdnDir(), 'custom-elements.json');
+            const distManifest = join(getDistDir(), 'custom-elements.json');
+            const manifestChanged = readCanonicalManifest(cdnManifest) !== readCanonicalManifest(distManifest);
             const since = Date.now();
+            if (manifestChanged) {
+              await copy(cdnManifest, distManifest, { overwrite: true });
+            }
+
             await regenerateBundle();
             await initLitSsr(); // Reload components SSR definitions.
 
-            // This needs to be outside of "isComponent" check because SSR needs to run on CSS files too.
-            await generateDocs({ spinner, since });
+            if (manifestChanged) {
+              await generateDocs({ spinner, since });
+            }
 
             if (typeof options.afterWatchEvent === 'function') {
               await options.afterWatchEvent(evt, filename);
@@ -625,6 +637,18 @@ function isRunAsMain() {
   }
 
   return false;
+}
+
+// The analyzer doesn't emit modules or exports in a stable order
+function readCanonicalManifest(file) {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+    manifest.modules?.sort((a, b) => a.path.localeCompare(b.path));
+    manifest.modules?.forEach(module => module.exports?.sort((a, b) => a.name.localeCompare(b.name)));
+    return JSON.stringify(manifest);
+  } catch {
+    return null;
+  }
 }
 
 async function loadComponents() {
