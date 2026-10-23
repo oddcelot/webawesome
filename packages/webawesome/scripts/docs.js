@@ -9,11 +9,40 @@ import { formatError, getCdnDir, getDocsDir, getEleventyConfigPath, getSiteDir }
 
 let eleventyBuildResolver;
 let eleventyBuildPromise;
+let isEleventyBuilding = false;
+let lastEleventyBuildStart = 0;
 
-function queueBuild() {
+function startBuild() {
+  if (isEleventyBuilding) return;
+  isEleventyBuilding = true;
+  lastEleventyBuildStart = Date.now();
   eleventyBuildPromise = new Promise(resolve => {
     eleventyBuildResolver = resolve;
   });
+}
+
+function finishBuild() {
+  isEleventyBuilding = false;
+  eleventyBuildResolver?.();
+}
+
+/**
+ * Waits for an 11ty watch build that started after `since`. 11ty debounces file changes, so give it a moment to start
+ * before assuming nothing needed rebuilding.
+ */
+async function waitForEleventyBuild(since, settleMs = 1000) {
+  while (true) {
+    if (isEleventyBuilding) {
+      await eleventyBuildPromise;
+      continue;
+    }
+
+    if (lastEleventyBuildStart >= since || Date.now() - since > settleMs) {
+      return;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
 }
 
 // 11ty
@@ -30,14 +59,8 @@ export async function createEleventy(options = {}) {
       if (isDeveloping || isIncremental) {
         eleventyConfig.setUseTemplateCache(false);
 
-        eleventyConfig.on('eleventy.before', function () {
-          queueBuild();
-        });
         eleventyConfig.on('eleventy.beforeWatch', async function () {
-          queueBuild();
-        });
-        eleventyConfig.on('eleventy.after', async function () {
-          eleventyBuildResolver();
+          startBuild();
         });
       }
     },
@@ -45,6 +68,17 @@ export async function createEleventy(options = {}) {
     runMode: isIncremental ? 'watch' : 'build',
   });
   eleventy.setIncrementalBuild(isIncremental);
+
+  // 11ty logs the build summary after the "eleventy.after" listeners, so track the whole build
+  const executeBuild = eleventy.executeBuild.bind(eleventy);
+  eleventy.executeBuild = async (...args) => {
+    startBuild();
+    try {
+      return await executeBuild(...args);
+    } finally {
+      finishBuild();
+    }
+  };
 
   await eleventy.init();
 
@@ -68,7 +102,7 @@ export async function createEleventy(options = {}) {
  * Generates the documentation site.
  */
 export async function generateDocs(options = {}) {
-  let { spinner, isIncremental, isDeveloping } = options;
+  let { spinner, isIncremental, isDeveloping, since = Date.now() } = options;
 
   isDeveloping ??= process.argv.includes('--develop');
   isIncremental ??= isDeveloping && !process.argv.includes('--no-incremental');
@@ -109,23 +143,15 @@ export async function generateDocs(options = {}) {
       if (!globalThis.eleventy) {
         // First run
         globalThis.eleventy = await createEleventy(options);
-        eleventy = globalThis.eleventy;
-        output = chalk.gray(`(${eleventy.logFinished()})`);
+        await waitForEleventyBuild(since, 30_000);
       } else {
-        // eleventy incremental does its own writing, so we just kinda trust it for right now.
-        eleventy = globalThis.eleventy;
-
-        await eleventyBuildPromise;
-        let info = eleventy.logger.logger.outputs.log;
-
-        // TODO: The first write with incremental seems to be 1 behind. Not sure why. But its good enough for now.
-        info = info.filter(line => {
-          return !line.includes('Watching');
-        });
-        const lastLine = info[info.length - 1];
-        output = chalk.gray(`(${info.join('')})`);
-        eleventy.logger.logger.reset();
+        await waitForEleventyBuild(since);
       }
+
+      eleventy = globalThis.eleventy;
+      const info = eleventy.logger.logger.outputs.log.filter(line => !line.includes('Watching'));
+      output = chalk.gray(info.length ? `(${info.join('')})` : '(no changes)');
+      eleventy.logger.logger.reset();
     } else {
       // Cleanup
       await deleteAsync(getSiteDir());
