@@ -513,6 +513,99 @@ export async function build(options = {}) {
     );
 
     const watchEvents = ['change', 'unlink', 'add'];
+
+    // Bundles run one at a time. Changes that land while the manifest is being generated share a single follow-up run.
+    let bundleQueue = Promise.resolve();
+    let manifestRun = null;
+    let pendingManifestEvent = null;
+
+    function reportWatchError(err) {
+      console.error(chalk.red(formatError(err)));
+    }
+
+    async function updateManifest() {
+      await generateManifest();
+      await copy(getCdnDir(), getDistDir(), {
+        overwrite: true,
+        filter: file =>
+          file !== 'custom-elements.json' && (file.startsWith('types') || /^[^/]+\.(json|d\.ts)$/.test(file)),
+      });
+
+      // The docs only depend on src through the manifest
+      const cdnManifest = join(getCdnDir(), 'custom-elements.json');
+      const distManifest = join(getDistDir(), 'custom-elements.json');
+      if (readCanonicalManifest(cdnManifest) === readCanonicalManifest(distManifest)) {
+        return false;
+      }
+
+      const since = Date.now();
+      await copy(cdnManifest, distManifest, { overwrite: true });
+      await generateDocs({ spinner, since });
+      return true;
+    }
+
+    function scheduleManifestUpdate(evt, filename) {
+      pendingManifestEvent = { evt, filename };
+      if (manifestRun) {
+        return;
+      }
+
+      manifestRun = (async () => {
+        while (pendingManifestEvent) {
+          const event = pendingManifestEvent;
+          pendingManifestEvent = null;
+
+          try {
+            let docsChanged = await updateManifest();
+
+            if (typeof options.afterWatchEvent === 'function') {
+              await options.afterWatchEvent(event.evt, event.filename);
+              docsChanged = true;
+            }
+
+            if (docsChanged) {
+              reload();
+            }
+          } catch (err) {
+            reportWatchError(err);
+          }
+        }
+
+        manifestRun = null;
+      })();
+    }
+
+    async function handleSourceChange(evt, filename) {
+      const isCssStylesheet = filename.includes('.css');
+      const isComponent = filename.includes('components/') && filename.includes('.ts') && !isCssStylesheet;
+
+      if (typeof options.beforeWatchEvent === 'function') {
+        await options.beforeWatchEvent(evt, filename);
+      }
+
+      // Copy stylesheets when CSS files change
+      if (isCssStylesheet) {
+        await generateStyles();
+      }
+
+      // copy everything to unbundled before we generate bundles.
+      // this may cause watcher events to break. if things are broken with file watching, comment this out.
+      await copy(getCdnDir(), getDistDir(), {
+        overwrite: true,
+        filter: file => file !== 'custom-elements.json',
+      });
+      await regenerateBundle();
+      await initLitSsr(); // Reload components SSR definitions.
+      reload();
+
+      if (isComponent && !filename.endsWith('.styles.ts')) {
+        scheduleManifestUpdate(evt, filename);
+      } else if (typeof options.afterWatchEvent === 'function') {
+        await options.afterWatchEvent(evt, filename);
+        reload();
+      }
+    }
+
     // Rebuild and reload when source files change
     options.watchedSrcDirectories.forEach(dir => {
       const watcher = bs.watch(join(dir, '**', '!(*.test).*'), { ignoreInitial: true });
@@ -521,7 +614,7 @@ export async function build(options = {}) {
         watcher.on(evt, handleWatchEvent(evt));
       });
       function handleWatchEvent(evt) {
-        return async filename => {
+        return filename => {
           const changedFile = relative(getRootDir(), filename);
 
           if (evt === 'change') {
@@ -532,71 +625,12 @@ export async function build(options = {}) {
             spinner.info(`File added ${chalk.gray(`(${changedFile})`)}`);
           }
 
-          try {
-            const isTestFile = filename.includes('.test.ts');
-            const isCssStylesheet = filename.includes('.css');
-            const isComponent =
-              filename.includes('components/') && filename.includes('.ts') && !isCssStylesheet && !isTestFile;
-
-            // Re-bundle when relevant files change
-            if (isTestFile) {
-              return;
-            }
-
-            if (typeof options.beforeWatchEvent === 'function') {
-              await options.beforeWatchEvent(evt, filename);
-            }
-
-            // Copy stylesheets when CSS files change
-            if (isCssStylesheet) {
-              await generateStyles();
-            }
-
-            // copy everything to unbundled before we generate bundles.
-            // this may cause watcher events to break. if things are broken with file watching, comment this out.
-            await copy(getCdnDir(), getDistDir(), {
-              overwrite: true,
-              filter: file => file !== 'custom-elements.json',
-            });
-            await regenerateBundle();
-            await initLitSsr(); // Reload components SSR definitions.
-            reload();
-
-            let docsChanged = false;
-            if (isComponent && !filename.endsWith('.styles.ts')) {
-              await generateManifest();
-              await copy(getCdnDir(), getDistDir(), {
-                overwrite: true,
-                filter: file =>
-                  file !== 'custom-elements.json' && (file.startsWith('types') || /^[^/]+\.(json|d\.ts)$/.test(file)),
-              });
-
-              // The docs only depend on src through the manifest
-              const cdnManifest = join(getCdnDir(), 'custom-elements.json');
-              const distManifest = join(getDistDir(), 'custom-elements.json');
-              if (readCanonicalManifest(cdnManifest) !== readCanonicalManifest(distManifest)) {
-                const since = Date.now();
-                await copy(cdnManifest, distManifest, { overwrite: true });
-                await generateDocs({ spinner, since });
-                docsChanged = true;
-              }
-            }
-
-            if (typeof options.afterWatchEvent === 'function') {
-              await options.afterWatchEvent(evt, filename);
-              docsChanged = true;
-            }
-
-            if (docsChanged) {
-              reload();
-            }
-          } catch (err) {
-            console.error(chalk.red(formatError(err)));
-
-            if (!isDeveloping) {
-              process.exit(1);
-            }
+          // Re-bundle when relevant files change
+          if (filename.includes('.test.ts')) {
+            return;
           }
+
+          bundleQueue = bundleQueue.then(() => handleSourceChange(evt, filename)).catch(reportWatchError);
         };
       }
     });
