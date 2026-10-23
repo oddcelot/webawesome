@@ -469,10 +469,16 @@ export default async function (eleventyConfig) {
   //   // Run Prettier on each file (prod only because it can be slow)
   //   eleventyConfig.addPlugin(formatCodePlugin());
   // }
-  eleventyConfig.on('eleventy.after', async () => {
+  let hasGeneratedSkills = false;
+  eleventyConfig.on('eleventy.after', async ({ runMode }) => {
     if (process.env.SKIP_SLOW_STEPS === 'true') {
       return;
     }
+
+    if (runMode === 'watch' && hasGeneratedSkills) {
+      return;
+    }
+    hasGeneratedSkills = true;
 
     const siteDir = getSiteDir();
     await generateAgentSkill({
