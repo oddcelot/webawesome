@@ -520,7 +520,7 @@ export async function build(options = {}) {
             }
 
             // Regenerate metadata when components change
-            if (isComponent) {
+            if (isComponent && !filename.endsWith('.styles.ts')) {
               await generateManifest();
             }
 
