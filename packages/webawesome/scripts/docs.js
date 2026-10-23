@@ -4,7 +4,9 @@ import copy from 'recursive-copy';
 
 import chalk from 'chalk';
 import { deleteAsync } from 'del';
+import { existsSync } from 'fs';
 import { join } from 'path';
+import { getComponents } from '../docs/_utils/manifest.js';
 import { formatError, getCdnDir, getDocsDir, getEleventyConfigPath, getSiteDir } from './utils.js';
 
 let eleventyBuildResolver;
@@ -45,6 +47,34 @@ async function waitForEleventyBuild(since, settleMs = 1000) {
   }
 }
 
+// Component fields that also show up on other pages, like the sidebar and the component index
+const SHARED_COMPONENT_FIELDS = ['tagName', 'status', 'summary', 'since', 'title'];
+let componentSnapshot;
+
+function snapshotComponents() {
+  return new Map(getComponents().map(component => [component.tagName, component]));
+}
+
+/** Returns the component page to rebuild when a manifest change only affects that page. */
+function getScopedComponentPage() {
+  const previous = componentSnapshot;
+  componentSnapshot = snapshotComponents();
+
+  if (!previous || previous.size !== componentSnapshot.size) return;
+
+  const changed = [...componentSnapshot].filter(
+    ([tagName, component]) => JSON.stringify(component) !== JSON.stringify(previous.get(tagName)),
+  );
+  if (changed.length !== 1) return;
+
+  const [tagName, component] = changed[0];
+  const before = previous.get(tagName);
+  if (!before || SHARED_COMPONENT_FIELDS.some(field => component[field] !== before[field])) return;
+
+  const page = join(getDocsDir(), 'docs/components', `${tagName.replace(/^wa-/, '')}.md`);
+  return existsSync(page) ? page : undefined;
+}
+
 // 11ty
 export async function createEleventy(options = {}) {
   let { isIncremental, isDeveloping, rootDir } = options;
@@ -59,8 +89,15 @@ export async function createEleventy(options = {}) {
       if (isDeveloping || isIncremental) {
         eleventyConfig.setUseTemplateCache(false);
 
-        eleventyConfig.on('eleventy.beforeWatch', async function () {
+        eleventyConfig.on('eleventy.beforeWatch', async function (changedFiles) {
           startBuild();
+
+          if (isIncremental && changedFiles.some(file => file.endsWith('custom-elements.json'))) {
+            const page = getScopedComponentPage();
+            if (page && changedFiles.length === 1) {
+              eleventy.setIncrementalFile(page);
+            }
+          }
         });
       }
     },
@@ -86,6 +123,8 @@ export async function createEleventy(options = {}) {
   eleventy.logger.overrideLogger(new CustomLogger());
 
   if (isIncremental) {
+    componentSnapshot = snapshotComponents();
+
     // For some reason, removing the await here fixes incremental loading?
     eleventy.watch();
 
