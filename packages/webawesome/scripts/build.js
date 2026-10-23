@@ -12,6 +12,7 @@ import * as path from 'node:path';
 import { dirname, extname, join, posix, relative } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { Worker } from 'node:worker_threads';
 import open from 'open';
 import ora from 'ora';
 import copy from 'recursive-copy';
@@ -141,11 +142,19 @@ export async function build(options = {}) {
   /**
    * Analyzes components and generates the custom elements manifest file.
    */
-  function generateManifest() {
+  async function generateManifest() {
     spinner.start('Generating CEM');
+    const command = 'cem analyze --config "custom-elements-manifest.js"';
 
     try {
-      execSync('cem analyze --config "custom-elements-manifest.js"');
+      if (isDeveloping) {
+        await analyzeInWorker().catch(error => {
+          console.error(chalk.yellow(`\n\nManifest worker failed, falling back to the CLI.\n${error.message}`));
+          execSync(command);
+        });
+      } else {
+        execSync(command);
+      }
     } catch (error) {
       console.error(`\n\n${error.message}`);
 
@@ -155,7 +164,31 @@ export async function build(options = {}) {
     }
 
     spinner.succeed();
-    return Promise.resolve();
+  }
+
+  let manifestWorker;
+  function analyzeInWorker() {
+    manifestWorker ??= new Worker(new URL('./manifest-worker.js', import.meta.url), {
+      workerData: { configPath: 'custom-elements-manifest.js' },
+    });
+    const worker = manifestWorker;
+
+    return new Promise((resolve, reject) => {
+      const handleMessage = result => {
+        worker.off('error', handleError);
+        if (result.ok) resolve();
+        else reject(new Error(result.error));
+      };
+      const handleError = error => {
+        worker.off('message', handleMessage);
+        manifestWorker = undefined;
+        reject(error);
+      };
+
+      worker.once('message', handleMessage);
+      worker.once('error', handleError);
+      worker.postMessage('analyze');
+    });
   }
 
   /**
@@ -519,39 +552,44 @@ export async function build(options = {}) {
               await generateStyles();
             }
 
-            // Regenerate metadata when components change
-            if (isComponent && !filename.endsWith('.styles.ts')) {
-              await generateManifest();
-            }
-
             // copy everything to unbundled before we generate bundles.
             // this may cause watcher events to break. if things are broken with file watching, comment this out.
             await copy(getCdnDir(), getDistDir(), {
               overwrite: true,
               filter: file => file !== 'custom-elements.json',
             });
-
-            // The docs only depend on src through the manifest
-            const cdnManifest = join(getCdnDir(), 'custom-elements.json');
-            const distManifest = join(getDistDir(), 'custom-elements.json');
-            const manifestChanged = readCanonicalManifest(cdnManifest) !== readCanonicalManifest(distManifest);
-            const since = Date.now();
-            if (manifestChanged) {
-              await copy(cdnManifest, distManifest, { overwrite: true });
-            }
-
             await regenerateBundle();
             await initLitSsr(); // Reload components SSR definitions.
+            reload();
 
-            if (manifestChanged) {
-              await generateDocs({ spinner, since });
+            let docsChanged = false;
+            if (isComponent && !filename.endsWith('.styles.ts')) {
+              await generateManifest();
+              await copy(getCdnDir(), getDistDir(), {
+                overwrite: true,
+                filter: file =>
+                  file !== 'custom-elements.json' && (file.startsWith('types') || /^[^/]+\.(json|d\.ts)$/.test(file)),
+              });
+
+              // The docs only depend on src through the manifest
+              const cdnManifest = join(getCdnDir(), 'custom-elements.json');
+              const distManifest = join(getDistDir(), 'custom-elements.json');
+              if (readCanonicalManifest(cdnManifest) !== readCanonicalManifest(distManifest)) {
+                const since = Date.now();
+                await copy(cdnManifest, distManifest, { overwrite: true });
+                await generateDocs({ spinner, since });
+                docsChanged = true;
+              }
             }
 
             if (typeof options.afterWatchEvent === 'function') {
               await options.afterWatchEvent(evt, filename);
+              docsChanged = true;
             }
 
-            reload();
+            if (docsChanged) {
+              reload();
+            }
           } catch (err) {
             console.error(chalk.red(formatError(err)));
 
