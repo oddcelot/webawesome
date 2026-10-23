@@ -12,6 +12,7 @@ import * as path from 'node:path';
 import { dirname, extname, join, posix, relative } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { Worker } from 'node:worker_threads';
 import open from 'open';
 import ora from 'ora';
 import copy from 'recursive-copy';
@@ -141,11 +142,19 @@ export async function build(options = {}) {
   /**
    * Analyzes components and generates the custom elements manifest file.
    */
-  function generateManifest() {
+  async function generateManifest() {
     spinner.start('Generating CEM');
+    const command = 'cem analyze --config "custom-elements-manifest.js"';
 
     try {
-      execSync('cem analyze --config "custom-elements-manifest.js"');
+      if (isDeveloping) {
+        await analyzeInWorker().catch(error => {
+          console.error(chalk.yellow(`\n\nManifest worker failed, falling back to the CLI.\n${error.message}`));
+          execSync(command);
+        });
+      } else {
+        execSync(command);
+      }
     } catch (error) {
       console.error(`\n\n${error.message}`);
 
@@ -155,7 +164,31 @@ export async function build(options = {}) {
     }
 
     spinner.succeed();
-    return Promise.resolve();
+  }
+
+  let manifestWorker;
+  function analyzeInWorker() {
+    manifestWorker ??= new Worker(new URL('./manifest-worker.js', import.meta.url), {
+      workerData: { configPath: 'custom-elements-manifest.js' },
+    });
+    const worker = manifestWorker;
+
+    return new Promise((resolve, reject) => {
+      const handleMessage = result => {
+        worker.off('error', handleError);
+        if (result.ok) resolve();
+        else reject(new Error(result.error));
+      };
+      const handleError = error => {
+        worker.off('message', handleMessage);
+        manifestWorker = undefined;
+        reject(error);
+      };
+
+      worker.once('message', handleMessage);
+      worker.once('error', handleError);
+      worker.postMessage('analyze');
+    });
   }
 
   /**
